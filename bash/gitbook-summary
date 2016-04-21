@@ -1,0 +1,29 @@
+#!/bin/bash
+
+singled () {
+  local output=$1
+  local dir=$2
+  local prefix=$3
+  local d=${dir##*/}
+  pushd $d
+  echo "$prefix* [$d]($dir)">>$output
+  for f in $(ls) ;do
+    if [ -d $f ] ;then
+      singled $output $dir/$f "${prefix}    "
+    elif [ -f $f ] ;then
+      echo "$prefix    * [${f%%.*}]($dir/$f)">>$output
+    fi
+  done
+  popd
+}
+
+output=$PWD/SUMMARY.md
+
+echo "# Summary">$output
+echo "">>$output
+
+for d in $(ls) ;do
+  if [ -d $d -a "$d" != "_book" ] ;then
+    singled $output $d
+  fi
+done
