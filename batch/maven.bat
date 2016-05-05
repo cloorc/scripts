@@ -34,8 +34,8 @@ for %%c in (%*) do (
 		for /f "tokens=1,2,3,4,5 delims=:" %%m in ("!val!") do (
 			set groupId=%%m
 			set artifactId=%%n
-			set version=%%o
-			set packaging=%%p
+			set packaging=%%o
+			set version=%%p
 		)
 	) else if "x!opt!" equ "x-f" (
 		set file=!val!
