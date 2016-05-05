@@ -72,7 +72,7 @@ goto :eof
 
 :usage
 echo usage:
-echo   %~n0 get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version
+echo   %~n0 get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version [-t:targetDir]
 echo   %~n0 install -m:groupId:artifactId:version:packaging -f:x:\path\to\file.ext
 echo   %~n0 deploy -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version:packaging -f:x:\path\to\file.ext -i:repositoryId
 goto :exit
