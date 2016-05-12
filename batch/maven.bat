@@ -72,7 +72,7 @@ goto :eof
 
 :usage
 echo usage:
-echo   %~n0 get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version [-t:targetDir]
+echo   %~n0 get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:packaging:version [-t:targetDir]
 echo   %~n0 install -m:groupId:artifactId:version:packaging -f:x:\path\to\file.ext
 echo   %~n0 deploy -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version:packaging -f:x:\path\to\file.ext -i:repositoryId
 goto :exit
@@ -87,7 +87,7 @@ goto :exit
 
 :get
 set success=
-call mvn dependency:get -DrepoUrl=!repoUrl! -Dartifact=!groupId!:!artifactId!:!version!
+call mvn dependency:get -DrepoUrl=!repoUrl! -Dartifact=!groupId!:!artifactId!:!version!:!packaging!
 if defined targetDir (
 	set repository=%USERPROFILE%\.m2\repository
 	set localTmp=%TEMP%\%~n0_tmp
