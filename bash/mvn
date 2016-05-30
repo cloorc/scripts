@@ -1,0 +1,15 @@
+#!/bin/bash
+
+e_notfound="\e[31mno proper maven installation found.\e[0m"
+
+[ -n "$M2_HOME" -a -e "$M2_HOME" ] && isfirst=true
+
+[ ! -n "$M2_HOME" ] && read -p "please specify maven installation path:" M2_HOME
+[ ! -n "$M2_HOME" ] && echo -e ${e_notfound} && exit -1;
+
+mvn="$M2_HOME/bin/mvn"
+
+[ ! -e "$mvn" ] && echo -e ${e_notfound} && exit -1;
+[ "true" = "$isfirst" ] && export M2_HOME && echo export M2_HOME=$M2_HOME>>~/.bashrc
+
+$mvn $*
