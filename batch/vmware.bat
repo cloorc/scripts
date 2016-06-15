@@ -19,6 +19,13 @@ for %%c in (%*) do (
 			net /y stop %%s>nul 2>&1 && set done=done
 			echo !done!
 		)
+	) else if "x%%c" equ "xsc" (
+		for %%s in (%services%) do (
+			set /p "ign=try to config service %%s boot on demand ... " <nul
+			set done=fail
+			sc config %%s start= demand>nul 2>&1 && set done=done
+			echo !done!
+		)
 	) else (
 		echo invalid command for net : %%c
 	)
