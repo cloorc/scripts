@@ -3,7 +3,7 @@
 setlocal enabledelayedexpansion
 
 :: try to retrieve code page
-codepage=
+set codepage=
 for /f "usebackq tokens=2,3* delims=:" %%a in (`chcp`) do (
     if not defined codepage set codepage=%%a
 )
@@ -28,8 +28,8 @@ for /f "usebackq tokens=1,2* delims=:" %%a in (`ipconfig`) do (
 )
 
 :: drop default gateway
-if defined gateway (
-    set /p ign=going to delete default route with gateway %gateway% ... <nul
+if "x!gateway: =!" neq "x" (
+    set /p ign=going to delete default route with gateway !gateway! ... <nul
     route delete 0.0.0.0 mask 0.0.0.0 %gateway%>nul 2>&1 && echo done.
     :: flush dns
     set /p ign=going to refresh dns settings ... <nul
