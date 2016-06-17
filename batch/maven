@@ -1,9 +1,27 @@
 #!/bin/bash
-coo=${1#/}
-coo=${coo%/}
-version=${coo##*/}
-coo=${coo%/*}
-artifactId=${coo##*/}
-coo=${coo%/*}
-groupId=${coo//\//.}
-maven.bat get -m:$groupId:$artifactId:jar:$version
+[ $# -lt 1 ] && echo -e "\e[31merror: check maven.bat for help.\e[0m" && exit 0
+opts=
+for o in $*
+do
+    case $o in
+        -m:*)
+            if [ "${o//\//.}" != "$o" ] ;then
+                coo=${o#*:}
+                coo=${coo#/}
+                coo=${coo%/}
+                version=${coo##*/}
+                coo=${coo%/*}
+                artifactId=${coo##*/}
+                coo=${coo%/*}
+                groupId=${coo//\//.}
+                opts+=" -m:$groupId:$artifactId:jar:$version"
+            else
+                opts+=" $o"
+            fi
+            ;;
+        *)
+            opts+=" $o"
+            ;;
+    esac
+done
+maven.bat $opts
