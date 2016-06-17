@@ -1,0 +1,9 @@
+#!/bin/bash
+coo=${1#/}
+coo=${coo%/}
+version=${coo##*/}
+coo=${coo%/*}
+artifactId=${coo##*/}
+coo=${coo%/*}
+groupId=${coo//\//.}
+maven.bat get -m:$groupId:$artifactId:jar:$version
