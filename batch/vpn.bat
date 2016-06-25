@@ -31,6 +31,9 @@ for /f "usebackq tokens=1,2* delims=:" %%a in (`ipconfig`) do (
 
 :: drop default gateway
 if "x!gateway: =!" neq "x" (
+    echo WRANNING!!! Your computer will reboot automatically if routes are failed to update,
+    echo WARNNING!!! otherwise please abandon this shutting down by `shutdown /a`
+    echo.
     set /p ign=going to delete default route with gateway !gateway! ... <nul
     route delete 0.0.0.0 mask 0.0.0.0 !gateway!>nul 2>&1 && echo done.
     set /p ign=going to add new route: !network! !mask! !gateway! ... <nul
