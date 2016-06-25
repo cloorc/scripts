@@ -43,6 +43,8 @@ if "x!gateway: =!" neq "x" (
     ipconfig /flushdns>nul && echo done.
 )
 
+set /p ign=Mission completed. <nul
+pause
 :: change code page to origin
 chcp !codepage!>nul
 
