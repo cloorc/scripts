@@ -31,18 +31,25 @@ for /f "usebackq tokens=1,2* delims=:" %%a in (`ipconfig`) do (
 
 :: drop default gateway
 if "x!gateway: =!" neq "x" (
+    :: plan to reboot
     echo WRANNING!!! Your computer will reboot automatically if routes are failed to update,
     echo WARNNING!!! otherwise please abandon this shutting down by `shutdown /a`
     echo.
     shutdown /r /t 180
     echo.
-    set /p ign=going to delete default route with gateway !gateway! ... <nul
+    :: update route
+    set /p ign=going to remove route: 0.0.0.0 0.0.0.0 !gateway! ... <nul
     route delete 0.0.0.0 mask 0.0.0.0 !gateway!>nul 2>&1 && echo done.
-    set /p ign=going to add new route: !network! !mask! !gateway! ... <nul
+    set /p ign=going to insert route: !network! !mask! !gateway! ... <nul
     route add !network! mask !mask! !gateway!>nul 2>&1 && echo done.
     :: flush dns
     set /p ign=going to refresh dns settings ... <nul
     ipconfig /flushdns>nul && echo done.
+    :: try to abandon shutting down
+    echo.
+    set /p ign=Stop rebooting your computer ... <nul
+    pause
+    shutdown /a
 )
 
 echo.
