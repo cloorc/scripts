@@ -48,9 +48,49 @@ done
 if [ -n "$redirect" ] ;then
     maven.bat $opts
 else
+    valid=
+    while read ln ;do
+        line=$(echo $ln|tr -d [:blank:])
+        if [ "$line" == "</repository>" ];then
+            valid=
+        fi
+        if [ -n "$valid" ] ;then
+            len=$(expr length "$line")
+            if [ $(expr match "$line" "^<url>[^<>]*</url>$") -eq $len ] ;then
+                rep=${line#*>}
+                rep=${rep%<*}
+                echo $repository|grep -q $rep>/dev/null 2>&1
+                [ $? -eq 1 ] && repository="$rep $repository"
+            fi
+        fi
+        if [ "$line" == "<repository>" ] ;then
+            valid=true
+        fi
+    done<~/.m2/settings.xml
+    echo -e "\e[31mrepos: $repository\e[0m"
     case $cmd in
         list)
-            curl "${repository%/}/${groupId//./\/}/${artifactId}/" -qs|grep "^<a href=[^<>]*>[^<>/]*/</a>.*$"|awk -F\> '{print $2}'|awk -F/ '{print $1}'
+            for rep in $repository ;do
+                list=$(curl "${rep%/}/${groupId//./\/}/${artifactId}/" -qs|while read ln ;do
+                        echo $ln|grep -q ".*<a href=[^<>]*>[^<>/]*/</a>.*"
+                        if [ $? -eq 0 ] ;then
+                            release=${ln%%/</a>*}
+                            release=${release##*>}
+                            if [ -n "$release" ] ;then
+                                if [ -z "$first" ] ;then
+                                    first=true
+                                    echo $release
+                                else
+                                    echo " $release"
+                                fi
+                            fi
+                        fi
+                    done)
+                if [ -n "$list" ] ;then
+                    echo -e "\e[32m $list \e[0m"
+                    exit 0
+                fi
+            done
             ;;
         *)
             ;;
