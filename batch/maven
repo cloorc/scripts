@@ -1,9 +1,26 @@
 #!/bin/bash
-[ $# -lt 1 ] && echo -e "\e[31merror: check maven.bat for help.\e[0m" && exit 0
+if [ $# -lt 1 ] ;then
+    maven.bat
+    echo -e "\e[32m  maven list -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId\e[0m"
+    exit 0
+fi
+redirect=true
 opts=
+repository=http://repo1.maven.org/maven2/
+groupId=
+artifactId=
+version=
+cmd=
 for o in $*
 do
     case $o in
+        list)
+            cmd=list
+            redirect=
+            ;;
+        -r:*)
+            repository=${o#-r:}
+            ;;
         -m:*)
             if [ "${o//\//.}" != "$o" ] ;then
                 coo=${o#*:}
@@ -17,6 +34,9 @@ do
                 opts+=" -m:$groupId:$artifactId:jar:$version"
             else
                 opts+=" $o"
+                coo=${o#-m:}
+                groupId=${coo%%:*}
+                artifactId=${coo##*:}
             fi
             ;;
         *)
@@ -24,4 +44,15 @@ do
             ;;
     esac
 done
-maven.bat $opts
+
+if [ -n "$redirect" ] ;then
+    maven.bat $opts
+else
+    case $cmd in
+        list)
+            curl "${repository%/}/${groupId//./\/}/${artifactId}/" -qs|grep "^<a href=[^<>]*>[^<>/]*/</a>.*$"|awk -F\> '{print $2}'|awk -F/ '{print $1}'
+            ;;
+        *)
+            ;;
+    esac
+fi
