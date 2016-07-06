@@ -1,0 +1,142 @@
+#!/bin/bash
+
+usage () {
+echo -e "\e[31m
+ usage:
+   ${0##*/} get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:packaging:version [-t:targetDir]
+   ${0##*/} install -m:groupId:artifactId:version:packaging -f:/path/to/file.ext
+   ${0##*/} deploy -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version:packaging -f:/path/to/file.ext -i:repositoryId
+   ${0##*/} maven list -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId
+\e[0m"
+}
+
+info() {
+    echo -e "\e[32m$*\e[0m"
+}
+
+warn() {
+    echo -e "\e[31m$*\e[0m"
+}
+
+if [ $# -lt 1 ] ;then
+    usage
+    exit 0
+fi
+redirect=true
+opts=
+repository=http://repo1.maven.org/maven2/
+groupId=
+artifactId=
+version=
+src=
+cmd=
+for o in $*
+do
+    case $o in
+        list|download|get|install|deploy)
+            cmd=$o
+            ;;
+        -f:*)
+            src=${o#-f:}
+            ;;
+        -r:*)
+            repository=${o#-r:}
+            ;;
+        -m:*)
+            if [ "${o//\//.}" != "$o" ] ;then
+                coo=${o#*:}
+                coo=${coo#/}
+                coo=${coo%/}
+                version=${coo##*/}
+                coo=${coo%/*}
+                artifactId=${coo##*/}
+                coo=${coo%/*}
+                groupId=${coo//\//.}
+                packaging=jar
+            else
+                coo=${o#-m:}
+                groupId=
+                artifactId=
+                packaging=
+                version=
+                for e in ${coo//:/ } ;do
+                    if [[ -n "$packaging" ]] ;then
+                        version=$e
+                        continue
+                    elif [[ -n "$artifactId" ]]; then
+                        packaging=$e
+                        continue
+                    elif [[ -n "$groupId" ]]; then
+                        artifactId=$e
+                        continue
+                    else
+                        groupId=$e
+                        continue
+                    fi
+                done
+            fi
+            ;;
+        -h|-help|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            ;;
+    esac
+done
+
+if [[ "$cmd" == "list" ]] ;then
+    valid=
+    while read ln ;do
+        line=$(echo $ln|tr -d [:blank:])
+        if [ "$line" == "</repository>" ];then
+            valid=
+        fi
+        if [ -n "$valid" ] ;then
+            len=$(expr length "$line")
+            if [ $(expr match "$line" "^<url>[^<>]*</url>$") -eq $len ] ;then
+                rep=${line#*>}
+                rep=${rep%<*}
+                echo $repository|grep -q $rep>/dev/null 2>&1
+                [ $? -eq 1 ] && repository="$rep $repository"
+            fi
+        fi
+        if [ "$line" == "<repository>" ] ;then
+            valid=true
+        fi
+    done<~/.m2/settings.xml
+fi
+case $cmd in
+    install)
+        mvn install:install-file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging -Dfile=$src>/dev/null 2>/dev/null
+        [ $? -ne 0 ] && warn "install failed."
+        ;;
+    list)
+        echo -e "\e[31mrepos: $repository\e[0m"
+        for rep in $repository ;do
+            list=$(curl "${rep%/}/${groupId//./\/}/${artifactId}/" -qs|while read ln ;do
+                    echo $ln|grep -q ".*<a href=[^<>]*>[^<>/]*/</a>.*"
+                    if [ $? -eq 0 ] ;then
+                        release=${ln%%/</a>*}
+                        release=${release##*>}
+                        if [ -n "$release" ] ;then
+                            if [ -z "$first" ] ;then
+                                first=true
+                                echo $release
+                            else
+                                echo " $release"
+                            fi
+                        fi
+                    fi
+                done)
+            if [ -n "$list" ] ;then
+                echo -e "\e[32m $list \e[0m"
+                exit 0
+            fi
+        done
+        ;;
+    download)
+        ;;
+    *)
+        ;;
+esac
