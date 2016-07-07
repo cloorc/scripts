@@ -122,6 +122,10 @@ case $cmd in
         ;;
     get)
         mvn dependency:get -DrepoUrl=$repository -Dartifact=$groupId:$artifactId:$version:$packaging $opts
+        if [ -e "$targetDir" ] ;then
+            localRepository=$(mvn help:evaluate -Dexpression=settings.localRepository 2>/dev/null|grep "^/")
+            cp -vf $localRepository/${groupId//./\/}/$artifactId/$version/$artifactId-$version.$packaging $targetDir
+        fi
         ;;
     list)
         echo -e "\e[31mrepos: $repository\e[0m"
