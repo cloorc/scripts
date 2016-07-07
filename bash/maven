@@ -33,14 +33,20 @@ cmd=
 for o in $*
 do
     case $o in
-        list|download|get|install|deploy)
+        list|wget|get|install|deploy)
             cmd=$o
             ;;
         -f:*)
             src=${o#-f:}
             ;;
+        -i:*)
+            repositoryId=${o#-i:}
+            ;;
         -r:*)
             repository=${o#-r:}
+            ;;
+        -t:*)
+            targetDir=${o#-t:}
             ;;
         -m:*)
             if [ "${o//\//.}" != "$o" ] ;then
@@ -81,6 +87,7 @@ do
             exit 0
             ;;
         *)
+            opts+="$o "
             ;;
     esac
 done
@@ -108,8 +115,13 @@ if [[ "$cmd" == "list" ]] ;then
 fi
 case $cmd in
     install)
-        mvn install:install-file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging -Dfile=$src>/dev/null 2>/dev/null
-        [ $? -ne 0 ] && warn "install failed."
+        mvn install:install-file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging -Dfile=$src $opts
+        ;;
+    deploy)
+        mvn deploy:deploy-file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging -Dfile=$src -Durl=$repository -DrepositoryId=$repositoryId $opts
+        ;;
+    get)
+        mvn dependency:get -DrepoUrl=$repository -Dartifact=$groupId:$artifactId:$version:$packaging $opts
         ;;
     list)
         echo -e "\e[31mrepos: $repository\e[0m"
@@ -135,7 +147,7 @@ case $cmd in
             fi
         done
         ;;
-    download)
+    wget)
         ;;
     *)
         ;;
