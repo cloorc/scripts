@@ -134,25 +134,11 @@ case $cmd in
     list)
         echo -e "\e[31mrepos: $repository\e[0m"
         for rep in $repository ;do
-            list=$(curl "${rep%/}/${groupId//./\/}/${artifactId}/" -qs|while read ln ;do
-                    echo $ln|grep -q ".*<a href=[^<>]*>[^<>/]*/</a>.*"
-                    if [ $? -eq 0 ] ;then
-                        release=${ln%%/</a>*}
-                        release=${release##*>}
-                        if [ -n "$release" ] ;then
-                            if [ -z "$first" ] ;then
-                                first=true
-                                echo $release
-                            else
-                                echo " $release"
-                            fi
-                        fi
-                    fi
-                done)
-            if [ -n "$list" ] ;then
-                echo -e "\e[32m $list \e[0m"
-                exit 0
-            fi
+            curl "${rep%/}/${groupId//./\/}/${artifactId}/" -qs|grep "^<a href=\"[^<>]\+\">[^<>]\+/</a>\s\+[^\s]\+ [^\s]\+\s\+.*$"|sed "s/^<a[^<>]\+>\([^<>]\+\)\/<\/a>\s\+\([^\s]\{11\} [^\s]\{5\}\)\s\+.*$/\2;\1/g"|while read ln ;do
+                updated=${ln%%;*}
+                echo -e "\e[32m[$(date -d "$updated" "+%Y/%m/%d %R")] ${ln##*;}\e[0m"
+            done
+            [ $? -eq 0 ] && exit 0
         done
         ;;
     wget)
