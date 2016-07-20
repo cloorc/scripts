@@ -24,7 +24,7 @@ if [ $# -lt 1 ] ;then
 fi
 redirect=true
 opts=
-repository=http://repo1.maven.org/maven2/
+repository=http://repo.maven.apache.org/maven2/
 groupId=
 artifactId=
 version=
@@ -93,26 +93,24 @@ do
 done
 
 if [[ "$cmd" == "list" ]] ;then
-    valid=
-    while read ln ;do
-        line=$(echo $ln|tr -d [:blank:])
-        if [ "$line" == "</repository>" ];then
-            valid=
+    for ((i = 0; 1 ; i ++)) ;do
+        active=$(mvn help:evaluate -Dexpression=settings.profiles[$i].activation.activeByDefault 2>/dev/null|grep -E "true|false")
+        if [ $? -ne 0 ] ;then
+            break
         fi
-        if [ -n "$valid" ] ;then
-            len=$(expr length "$line")
-            if [ $(expr match "$line" "^<url>[^<>]*</url>$") -eq $len ] ;then
-                rep=${line#*>}
-                rep=${rep%<*}
-                echo $repository|grep -q $rep>/dev/null 2>&1
-                [ $? -eq 1 ] && repository="$rep $repository"
-            fi
+        if [ "$active" == "true" ] ;then
+            for ((j = 0; 1 ; j++)) ;do
+                rep=$(mvn help:evaluate -Dexpression=settings.profiles[$i].repositories[$j].url 2>/dev/null|grep "^https\?://.*$")
+                if [ $? -eq 0 ] ;then
+                    repository+=" $rep"
+                else
+                    break
+                fi
+            done
         fi
-        if [ "$line" == "<repository>" ] ;then
-            valid=true
-        fi
-    done<~/.m2/settings.xml
+    done
 fi
+
 case $cmd in
     install)
         mvn install:install-file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging -Dfile=$src $opts
