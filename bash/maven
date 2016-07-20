@@ -22,6 +22,9 @@ if [ $# -lt 1 ] ;then
     usage
     exit 0
 fi
+
+info "parsing parameters ... "
+
 redirect=true
 opts=
 repository=http://repo.maven.apache.org/maven2/
@@ -102,6 +105,7 @@ if [[ "$cmd" == "list" ]] ;then
             for ((j = 0; 1 ; j++)) ;do
                 rep=$(mvn help:evaluate -Dexpression=settings.profiles[$i].repositories[$j].url 2>/dev/null|grep "^https\?://.*$")
                 if [ $? -eq 0 ] ;then
+                    info "optional repository: $rep"
                     repository+=" $rep"
                 else
                     break
@@ -110,6 +114,8 @@ if [[ "$cmd" == "list" ]] ;then
         fi
     done
 fi
+
+info "executing command $cmd ... "
 
 case $cmd in
     install)
