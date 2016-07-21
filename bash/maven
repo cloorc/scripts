@@ -23,8 +23,6 @@ if [ $# -lt 1 ] ;then
     exit 0
 fi
 
-info "parsing parameters ... "
-
 redirect=true
 opts=
 repository=http://repo.maven.apache.org/maven2/
@@ -105,7 +103,7 @@ if [[ "$cmd" == "list" ]] ;then
             for ((j = 0; 1 ; j++)) ;do
                 rep=$(mvn help:evaluate -Dexpression=settings.profiles[$i].repositories[$j].url 2>/dev/null|grep "^https\?://.*$")
                 if [ $? -eq 0 ] ;then
-                    info "optional repository: $rep"
+                    info "Found optional repository: $rep"
                     repository+=" $rep"
                 else
                     break
@@ -115,7 +113,7 @@ if [[ "$cmd" == "list" ]] ;then
     done
 fi
 
-info "executing command $cmd ... "
+echo -e "\e[31mTrying to $cmd with : $repository ... \e[0m"
 
 case $cmd in
     install)
@@ -134,7 +132,6 @@ case $cmd in
     list)
         isfound=
         for rep in $repository ;do
-            echo -e "\e[31mtrying repository $rep to list $groupId:$artifactId ... \e[0m"
             releases=$(curl -qs "${rep%/}/${groupId//./\/}/${artifactId}/"|sed '/\/<\/a><\/td>/{ N;s/^\s\+<td><a[^<>]\+>\([^<>\/]\+\)\/<\/a><\/td>\n\s\+<td>\([^<>]\+\)<\/td>/#MATCH;\1;\2/g;}'|sed 's/^<a[^<>]\+>\([^<>\/]\+\)\/<\/a>\s\+\([^\s]\{11\} [^\s]\{5\}\)\s\+.*$/#MATCH;\1;\2/g'|grep "^#MATCH"|awk -F\; '{print $3","$2}'|while read ln ;do
                 updated=${ln%%,*}
                 echo "[$(date -d "$updated" "+%Y/%m/%d %R")] ${ln##*,}"
