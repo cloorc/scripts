@@ -139,7 +139,7 @@ case $cmd in
                 updated=${ln%%,*}
                 echo "[$(date -d "$updated" "+%Y/%m/%d %R")] ${ln##*,}"
             done)
-            [ -n "$releases" ] && echo "$releases" && break
+            [ -n "$releases" ] && echo "$releases"|sort && break
         done
         ;;
     wget)
