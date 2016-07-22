@@ -113,7 +113,7 @@ if [[ "$cmd" == "list" ]] ;then
     done
 fi
 
-echo -e "\e[31mTrying to $cmd with : $repository ... \e[0m"
+echo -e "\e[31mTrying to work($cmd) with : $repository ... \e[0m"
 
 case $cmd in
     install)
