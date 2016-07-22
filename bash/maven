@@ -1,12 +1,15 @@
 #!/bin/bash
 
+repository=http://repo.maven.apache.org/maven2/
+
 usage () {
 echo -e "\e[31m
  usage:
-   ${0##*/} get -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:packaging:version [-t:targetDir]
+   ${0##*/} get -r:$repository -m:groupId:artifactId:packaging:version [-t:targetDir]
+   ${0##*/} download -r:$repository -m:groupId:artifactId:packaging:version [-t:targetDir]
    ${0##*/} install -m:groupId:artifactId:version:packaging -f:/path/to/file.ext
-   ${0##*/} deploy -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId:version:packaging -f:/path/to/file.ext -i:repositoryId
-   ${0##*/} maven list -r:http://repo1.maven.org/maven2/ -m:groupId:artifactId
+   ${0##*/} deploy -r:$repository -m:groupId:artifactId:version:packaging -f:/path/to/file.ext -i:repositoryId
+   ${0##*/} maven list -r:$repository -m:groupId:artifactId
 \e[0m"
 }
 
@@ -25,7 +28,6 @@ fi
 
 redirect=true
 opts=
-repository=http://repo.maven.apache.org/maven2/
 groupId=
 artifactId=
 version=
@@ -34,7 +36,7 @@ cmd=
 for o in $*
 do
     case $o in
-        list|wget|get|install|deploy)
+        list|wget|get|install|deploy|download)
             cmd=$o
             ;;
         -f:*)
@@ -93,7 +95,7 @@ do
     esac
 done
 
-if [[ "$cmd" == "list" ]] ;then
+if [ "$cmd" == "list" -o "$cmd" == "download" ] ;then
     for ((i = 0; 1 ; i ++)) ;do
         active=$(mvn help:evaluate -Dexpression=settings.profiles[$i].activation.activeByDefault 2>/dev/null|grep -E "true|false")
         if [ $? -ne 0 ] ;then
@@ -139,7 +141,32 @@ case $cmd in
             [ -n "$releases" ] && echo "$releases"|sort && break
         done
         ;;
-    wget)
+    download)
+        targetDir=${targetDir:-.}
+        for rep in $repository ;do
+            targetUrl=${repository%/}/${groupId//./\/}/${artifactId}/${version}/${artifactId}-${version}
+            case $packaging in
+                jar|pom)
+                    targetUrl+=".${packaging}"
+                    ;;
+                sources)
+                    targetUrl+="${packaging}.jar"
+                    ;;
+                *)
+                    warn "invalid packaging : $packaging"
+                    exit 1
+                    ;;
+            esac
+            cmdline=
+            axel --version>/dev/null 2>&1
+            if [ $? -eq 0 ] ;then
+                cmdline+="axel -n 4 -o $targetDir/${targetUrl##*/} $targetUrl"
+            else
+                cmdline+="wget -O $targetDir/${targetUrl##*/} $targetUrl"
+            fi
+            $cmdline
+            [ $? -eq 0 ] && break
+        done
         ;;
     *)
         ;;
