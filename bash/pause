@@ -1,4 +1,4 @@
 #!/bin/bash
-echo -en "$*"
+echo -en "${*:-press any key to continue ... }"
 read -ersn 1 _ign>/dev/null 2>&1
 echo
