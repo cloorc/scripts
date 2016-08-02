@@ -1,0 +1,4 @@
+#!/bin/bash
+echo -en "$*"
+read -ersn 1 _ign>/dev/null 2>&1
+echo

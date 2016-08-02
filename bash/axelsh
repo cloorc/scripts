@@ -1,13 +1,14 @@
 #!/bin/sh
 
-log="$HOME/axel/aexl_${1##*/}.log"
+log="$HOME/axel/${1##*/}_$(date +%N).log"
 [ ! -d "${log%/*}" ] && mv ${log%/*} ${log%/*}.bak>/dev/null 2>&1
 [ ! -e "${log%/*}" ] && mkdir ${log%/*}>/dev/null 2>&1
 
+echo "\033[31m$*\033[0m">>$log 2>&1
+
 [ $# -ne 2 ] && echo "\033[31musage: ${0##*/} <output> <url>\033[0m" && exit 1
 
-echo "$(date +%N)">>$log 2>&1
-pushd ${1%/*}>>$log 2>&1
+cd ${1%/*}>>$log 2>&1
 axel -n 8 $2>>$log 2>&1
-popd $log>>$log 2>&1
+
 
