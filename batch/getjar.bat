@@ -36,8 +36,8 @@ set jar=!artifactId!-!version!.jar
 set src=!artifactId!-!version!-sources.jar
 set parent=!repo!/!groupId:.=/!/!artifactId!/!version!
 echo going to get: !groupId!:!artifactId!:!version!
-axel -n 4 -o !jar! !parent!/!jar!
-axel -n 4 -o !src! !parent!/!src!
+if not exist !jar! axel -n 4 -o !jar! !parent!/!jar!
+if not exist !src! axel -n 4 -o !src! !parent!/!src!
 goto :end
 
 :invalid_parameters
