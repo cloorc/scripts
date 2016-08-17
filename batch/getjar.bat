@@ -32,10 +32,12 @@ if defined groupId if defined artifactId if defined version goto :execute
 goto :invalid_parameters
 
 :execute
-set out=!artifactId!-!version!-sources.jar
-set target=!repo!/!groupId:.=/!/!artifactId!/!version!/!out!
-echo going to get: !target!
-axel -n 4 -o !out! !target!
+set jar=!artifactId!-!version!.jar
+set src=!artifactId!-!version!-sources.jar
+set parent=!repo!/!groupId:.=/!/!artifactId!/!version!
+echo going to get: !groupId!:!artifactId!:!version!
+axel -n 4 -o !jar! !parent!/!jar!
+axel -n 4 -o !src! !parent!/!src!
 goto :end
 
 :invalid_parameters

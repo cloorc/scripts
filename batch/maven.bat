@@ -19,7 +19,7 @@ call :debug supported commands: !commands!
 call :debug parse arguments ...
 
 set command=
-set repoUrl=http://repo1.maven.org/maven2/
+set repoUrl=http://repo2.maven.org/maven2/
 for %%c in (%*) do (
 	set arg=%%c
 	set opt=!arg:~0,2!
