@@ -96,6 +96,10 @@ do
 done
 
 if [ "$cmd" == "list" -o "$cmd" == "download" ] ;then
+    # command `mvn helpp:evaluate` will evaluate expression based on current directory if it is also a maven project
+    tmpdir="/tmp/maven-temp-dir"
+    [ ! -e "$tmpdir" ] && mkdir $tmpdir -p;
+    pushd $tmpdir>/dev/null
     for ((i = 0; 1 ; i ++)) ;do
         active=$(mvn help:evaluate -Dexpression=settings.profiles[$i].activation.activeByDefault 2>/dev/null|grep -E "true|false")
         if [ $? -ne 0 ] ;then
@@ -113,6 +117,7 @@ if [ "$cmd" == "list" -o "$cmd" == "download" ] ;then
             done
         fi
     done
+    popd>/dev/null
 fi
 
 echo -e "\e[31mTrying to work($cmd) with : $repository ... \e[0m"
