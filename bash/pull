@@ -1,0 +1,5 @@
+#!/bin/bash
+src=$BASH_SOURCE
+pushd $(dirname $src)
+git pull
+popd
