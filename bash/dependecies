@@ -1,8 +1,0 @@
-#!/bin/bash
-cd ${WORKSPACE}
-coord=$(echo "\${project.groupId}/\${project.artifactId}/\${project.version}"|mvn help:evaluate -Ddetail 2>/dev/null|grep -v "^\[")
-groupId=${coord%%/*}
-coord=${groupId//./\/}/${coord#*/}
-rm /tmp/${coord}
-mvn dependency:tree -Dtokens=whitespace -DoutputFile=/tmp/${coord} -DappendOutput
-scp /tmp/${coord} root@192.168.103.103:/opt/www/tools/deps/${coord}

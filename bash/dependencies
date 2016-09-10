@@ -1,0 +1,25 @@
+#!/bin/bash
+m2home="/opt/apache-maven-3.3.9"
+server="root@192.168.103.103"
+[ ! -e "$m2home" ] && {
+	scp $server:/opt/www/tools/apache-maven-3.3.9-bin.tar.gz $m2home.tgz
+	tar -C /opt -xzf $m2home.tgz
+}
+which mvn>/dev/null 2>&1
+[ $? -ne 0 ] && export PATH=$m2home/bin:$PATH
+
+cd ${WORKSPACE}
+coord=$(echo "\${project.groupId}/\${project.artifactId}/\${project.version}"|mvn help:evaluate 2>/dev/null|grep -v "^\[")
+groupId=${coord%%/*}
+coord=${groupId//./\/}/${coord#*/}
+
+[ -z "${coord// /}" ] && {
+	echo -e "\033[31mFailed to retrieve GAV.\033[0m"
+	exit 1
+}
+
+rm -rvf /tmp/${coord}
+mvn -q dependency:tree -Dtokens=whitespace -DoutputFile=/tmp/${coord} -DappendOutput
+target=/opt/www/tools/deps/${coord}
+ssh $server mkdir -p ${target%/*}
+scp /tmp/${coord} $server:$target
