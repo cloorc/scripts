@@ -9,7 +9,7 @@ which mvn>/dev/null 2>&1
 [ $? -ne 0 ] && export PATH=$m2home/bin:$PATH
 
 cd ${WORKSPACE:-.}
-coord=$(echo "\${project.groupId}/\${project.artifactId}/\${project.version}"|mvn help:evaluate 2>/dev/null|grep -v "^\[")
+coord=$(echo "\${project.groupId}/\${project.artifactId}/\${project.version}"|mvn help:evaluate 2>/dev/null|grep -o "^[^[:space:]/]\+\(/[^[:space:]/]\+\)\{2\}$")
 groupId=${coord%%/*}
 coord=${groupId//./\/}/${coord#*/}
 
