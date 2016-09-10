@@ -8,13 +8,14 @@ server="root@192.168.103.103"
 which mvn>/dev/null 2>&1
 [ $? -ne 0 ] && export PATH=$m2home/bin:$PATH
 
-cd ${WORKSPACE:-.}
+pushd ${1:-${WORKSPACE:-.}}
 coord=$(echo "\${project.groupId}/\${project.artifactId}/\${project.version}"|mvn help:evaluate 2>/dev/null|grep -o "^[^[:space:]/]\+\(/[^[:space:]/]\+\)\{2\}$")
 groupId=${coord%%/*}
 coord=${groupId//./\/}/${coord#*/}
 
 [ -z "${coord// /}" ] && {
 	echo -e "\033[31mFailed to retrieve GAV.\033[0m"
+	popd
 	exit 1
 }
 
@@ -23,3 +24,4 @@ mvn -q dependency:tree -Dtokens=whitespace -DoutputFile=/tmp/${coord} -DappendOu
 target=/opt/www/tools/deps/${coord}
 ssh $server mkdir -p ${target%/*}
 scp /tmp/${coord} $server:$target
+popd
