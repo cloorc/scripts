@@ -9,6 +9,6 @@ echo "\033[31m$*\033[0m">>$log 2>&1
 [ $# -ne 2 ] && echo "\033[31musage: ${0##*/} <output> <url>\033[0m" && exit 1
 
 cd ${1%/*}>>$log 2>&1
-axel -n 8 $2>>$log 2>&1
+while ! axel -n 8 $2>>$log 2>&1 ;do echo retries ... ;done
 
 
