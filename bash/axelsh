@@ -1,10 +1,10 @@
 #!/bin/sh
 
-log="$HOME/axel/${1##*/}_$(date +%N).log"
+log="$HOME/axel/${1##*/}.log"
 [ ! -d "${log%/*}" ] && mv ${log%/*} ${log%/*}.bak>/dev/null 2>&1
 [ ! -e "${log%/*}" ] && mkdir ${log%/*}>/dev/null 2>&1
 
-echo "\033[31m$*\033[0m">>$log 2>&1
+echo "\033[31m$*\033[0m">$log 2>&1
 
 [ $# -ne 2 ] && echo "\033[31musage: ${0##*/} <output> <url>\033[0m" && exit 1
 
