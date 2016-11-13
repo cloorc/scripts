@@ -20,6 +20,20 @@ get() {
 	[ ! -e "$2/${3%/*}" ] && mkdir -p $2/${3%/*}
 	pushd $2/${3%/*}
 	axel -an 8 $1/$3
+	[ $? -ne 0 ] && return $?
+	if [ -n "${repositoryId}" -a "${url}" ] ;then
+		gavf=(${3//\// })
+		let len=${#gavf[@]}-3
+		groupId=${gavf[@]: 0:${len}}
+		mvn deploy:deploy-file -Dfile=${gavf[@]: -1:1} \
+			-DgroupId=${groupId// /.} \
+			-DartifactId=${gavf[@]: -3:1} \
+			-Dversion=${gavf[@]: -2:1} \
+			-DrepositoryId=${repositoryId} \
+			-Durl=${url}
+	else
+		info "skip deploying file for empty \${repositoryId} or \${url}"
+	fi
 	popd
 }
 
@@ -29,12 +43,12 @@ pushd /var
 localRepository=$(mvn help:evaluate -Dexpression=settings.localRepository|grep -o "^/.*")
 popd
 
-remote=http://repo.apache.maven.org/maven2
+remote=${repositoryUrl:-http://repo.apache.maven.org/maven2}
 
 for gav in $* ;do
 	[ "${gav:0:4}" = "http" -o "${gav:0:4}" = "HTTP" ] && remote=$gav && continue
 	[ "${gav//:/}" != "${gav}" ] && {
-		gapv=${gav//:/ }
+		gapv=(${gav//:/ })
 		get $remote $localRepository ${gapv[0]}/${gapv[1]}/${gapv[3]}/${gapv[1]}-${gapv[3]}.jar
 		continue
 	}
