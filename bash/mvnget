@@ -49,7 +49,7 @@ for gav in $* ;do
 	[ "${gav:0:4}" = "http" -o "${gav:0:4}" = "HTTP" ] && remote=$gav && continue
 	[ "${gav//:/}" != "${gav}" ] && {
 		gapv=(${gav//:/ })
-		get $remote $localRepository ${gapv[0]}/${gapv[1]}/${gapv[3]}/${gapv[1]}-${gapv[3]}.jar
+		get $remote $localRepository ${gapv[0]//./\/}/${gapv[1]}/${gapv[3]}/${gapv[1]}-${gapv[3]}.${gapv[2]}
 		continue
 	}
 	[ "${gav//\//}" != "${gav}" ] && {
