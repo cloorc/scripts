@@ -1,0 +1,46 @@
+#!/bin/bash
+
+usage() {
+	echo -e "\e[31musage:"
+	echo "  $0 [url] g/a/v"
+	echo "  $0 [url] g:a:p:v"
+	echo -e "\e[0m"
+}
+
+warn () {
+	echo -e "\e[31m$*\e[0m"
+}
+
+info () {
+	echo -e "\e[32m$*\e[0m"
+}
+
+# remote localRepository groupId/artifactId/version/artifactId-version.jar
+get() {
+	[ ! -e "$2/${3%/*}" ] && mkdir -p $2/${3%/*}
+	pushd $2/${3%/*}
+	axel -an 8 $1/$3
+	popd
+}
+
+[ $# -lt 1 ] && usage && exit -1
+
+pushd /var
+localRepository=$(mvn help:evaluate -Dexpression=settings.localRepository|grep -o "^/.*")
+popd
+
+remote=http://repo.apache.maven.org/maven2
+
+for gav in $* ;do
+	[ "${gav:0:4}" = "http" -o "${gav:0:4}" = "HTTP" ] && remote=$gav && continue
+	[ "${gav//:/}" != "${gav}" ] && {
+		gapv=${gav//:/ }
+		get $remote $localRepository ${gapv[0]}/${gapv[1]}/${gapv[3]}/${gapv[1]}-${gapv[3]}.jar
+		continue
+	}
+	[ "${gav//\//}" != "${gav}" ] && {
+		get $remote $localRepository $gav
+		continue
+	}
+	warn "invalid gav option: $gav."
+done
