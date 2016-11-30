@@ -1,0 +1,1 @@
+cnf=/usr/lib/ssl/openssl.cnf; [ ! -e "${cnf}" ] && mkdir -p ${cnf%/*} && curl -sS http://web.mit.edu/crypto/openssl.cnf>>${cnf};openssl genrsa -out ca-priv-key.pem 2048;openssl req -config ${cnf} -new -key ca-priv-key.pem -x509 -days 1825 -out ca.pem
