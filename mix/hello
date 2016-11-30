@@ -1,0 +1,8 @@
+ver>nul 2>&1 && goto :windows
+[ -e nul ] && rm -rf nul
+echo hello bash!
+
+exit 0
+:windows
+@echo off
+echo hello windows!

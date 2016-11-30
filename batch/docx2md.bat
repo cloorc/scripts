@@ -2,25 +2,19 @@
 
 setlocal enabledelayedexpansion
 
-set "src=%~1"
-if not exist !src! goto :nosuchfile
-
-set "ext=%~x1"
-set "ext=!ext:~1!"
-
-if "!ext!" neq "docx" goto :invalid_input_format
-
-set "dst=%~dpn1.md"
-
-pandoc -f docx -t markdown_github !src! -o !dst!
+:parse
+if "%~x1" equ ".docx" call :convert "%~1"
+shift /1
 goto :exit
 
-:nosuchfile
-echo !src! not found!
+:convert
+set /p "ign=converting [%~1] to [%~dpn1.md] ... " < nul
+pandoc -f docx -t markdown_github "%~1" -o "%~dpn1.md"
+echo done
 goto :eof
 
-:invalid_input_format
-echo input format !ext! is not supported.
+:nosuchfile
+echo !src! or !dst! does not exist!
 goto :eof
 
 :exit
