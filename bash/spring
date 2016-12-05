@@ -20,4 +20,4 @@ do
 		break
 	fi
 done
-java -jar $springbootcli
+java -jar $springbootcli $*
