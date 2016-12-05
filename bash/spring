@@ -1,0 +1,23 @@
+#!/bin/bash
+baseurl="http://repo2.maven.org/maven2/org/springframework/boot/spring-boot-cli"
+while true
+do
+	springbootcli=`ls spring-boot-cli-* -al|awk '{print $9}'|sort|uniq|head -n 1`
+	if [ ! $? -o ! -e $springbootcli ]
+		then
+		while true
+		do
+			latest=`curl -sSL $baseurl/maven-metadata.xml|grep -o "latest[^<]\+"|head -n 1`
+			latest=${latest##*\>}
+			[ -n "$latest" ] && {
+				while ! wget -co spring-boot-cli-$latest-full.jar $baseurl/$latest/spring-boot-cli-$latest-full.jar
+				do
+					echo "retrying for $?"
+				done
+			}
+		done
+	else
+		break
+	fi
+done
+java -jar $springbootcli
