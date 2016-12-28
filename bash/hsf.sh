@@ -17,7 +17,7 @@ fi
 options=${*:-}
 
 function usage() {
-    info "$command_name {stop|logs|start {registry-ip-address} [debug-port] [web-port] [options...]}"
+    info "usage: $command_name {stop|logs|config|start {registry-ip-address} [debug-port] [web-port] [options...]}"
 }
 
 function fatal() {
@@ -43,11 +43,16 @@ container=edas-${PWD##*/};
 
 case $cmd in
     stop)
-        stop $container;
+        stop $container
         ;;
     logs)
-        docker logs -f $container;
+        docker logs -f $container
         ;;
+    config)
+		container_config=edas-config-center
+		stop $container_config
+		docker run --name=$container_config -d -p 80:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
+		;;
     start)
         stop $container
         if [ ! -e target -o ! -d target ] ;then
@@ -79,7 +84,7 @@ case $cmd in
 
         info "${local_wd//\\/\\\\}";
 
-        docker run --name=$container -d -p $debug_port:5005 -p $web_port:8080 -v $local_wd:/home/tomcat/deploy -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" --add-host=jmenv.tbsite.net:$registry_ip --add-host=config.tesir.top:192.168.103.101 $options docker.tesir.top/ci/taobao-tomcat:v1.1;
+        docker run --name=$container -d -p $debug_port:5005 -p $web_port:8080 -v $local_wd:/home/tomcat/deploy -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" --add-host=jmenv.tbsite.net:$registry_ip --add-host=config.tesir.top:192.168.103.101 $options index.tenxcloud.com/revolc/edas:latest;
         ;;
     *)
         usage
