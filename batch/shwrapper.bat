@@ -12,7 +12,7 @@ if not defined git_home goto :git_not_installed
 set "sh_exe=!git_home!\bin\sh.exe"
 if not exist "!sh_exe!" goto :bash_not_found
 
-echo "%*"|"!sh_exe!"
+"!sh_exe!" $*
 
 goto :end
 
