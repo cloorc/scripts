@@ -68,7 +68,7 @@ case $cmd in
     config)
 		container_config=edas-config-center
 		stop $container_config
-		docker run --name=$container_config -d -p 80:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
+		docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
 		;;
     start)
         stop $container
