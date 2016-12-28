@@ -7,8 +7,16 @@ command_name=${command_name##*/}
 function usage() {
     info "Usage:"
     info "  $command_name {stop|logs|config|start {registry-ip-address} [debug-port [web-port [options...]]]}"
+    info "Description:"
+    info "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
+    info "  Docker container named by current folder name with prefix of \`edas-\`"
     info "Examples:"
-    info "  hsf start 10.80.1.23 5005 8080 -e local_db_host=10.80.1.23"
+    info "  # start edas config center"
+    info "  [root@app1 ~]# $command_name config"
+    info "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
+    info "  [root@app1 ~]# $command_name start 10.80.1.23 5005 8080 -e local_db_host=10.80.1.23"
+    info "  # stop docker container for current maven module"
+    info "  [root@app1 ~]# $command_name stop"
 }
 
 function fatal() {
