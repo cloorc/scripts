@@ -11,6 +11,7 @@ function usage() {
     info "  start: start container for current module"
     info "    --reg:<registry-ip-address>           edas configuration server address"
     info "    --cfg:<spring-cloud-config-server>    spring cloud config server address"
+    info "    --dbg:<debug-port>                    java remote debugger port"
     info "    <docker-run-options>                  additional options comes from \`docker run --help\`"
     info "Description:"
     info "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
@@ -61,6 +62,9 @@ for c in $* ;do
             ;;
         --cfg:*)
             config_ip=${c#--cfg:}
+            ;;
+        --dbg:*)
+            options+="-p ${c#--dbg:}:5005 -e JAVA_OPTS=\"-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y\" "
             ;;
         config|logs|start|stop|ps)
             cmd=$c
