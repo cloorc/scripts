@@ -3,21 +3,12 @@ set -e
 
 command_name=${0%.*}
 command_name=${command_name##*/}
-cmd=${1}
-registry_ip=${2:-192.168.103.108}
-debug_port=${3:-5005}
-web_port=${4:-8080}
-
-if [ $# -le 3 ]
-then
-    shift $#
-else
-    shift 4
-fi
-options=${*:-}
 
 function usage() {
-    info "usage: $command_name {stop|logs|config|start {registry-ip-address} [debug-port] [web-port] [options...]}"
+    info "Usage:"
+    info "  $command_name {stop|logs|config|start {registry-ip-address} [debug-port [web-port [options...]]]}"
+    info "Examples:"
+    info "  hsf start 10.80.1.23 5005 8080 -e local_db_host=10.80.1.23"
 }
 
 function fatal() {
@@ -37,6 +28,24 @@ function stop() {
     [ $count -eq 2 ] && docker rm $1;
     return 0
 }
+
+if [ $# -eq 0 ] ;then
+	usage
+	exit -1
+fi
+
+cmd=${1}
+registry_ip=${2:-192.168.103.108}
+debug_port=${3:-5005}
+web_port=${4:-8080}
+
+if [ $# -le 3 ]
+then
+    shift $#
+else
+    shift 4
+fi
+options=${*:-}
 
 info "Working with command: $cmd $registry_ip $debug_port $web_port $options";
 container=edas-${PWD##*/};
