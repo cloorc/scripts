@@ -6,7 +6,12 @@ command_name=${command_name##*/}
 
 function usage() {
     info "Usage:"
-    info "  $command_name {stop|logs|config|start {registry-ip-address} [debug-port [web-port [options...]]]}"
+    info "  $command_name {config|start [options]|stop|logs|ps}"
+    info "Options:"
+    info "  start: start container for current module"
+    info "    --reg:<registry-ip-address>           edas configuration server address"
+    info "    --cfg:<spring-cloud-config-server>    spring cloud config server address"
+    info "    <docker-run-options>                  additional options comes from \`docker run --help\`"
     info "Description:"
     info "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
     info "  Docker container named by current folder name with prefix of \`edas-\`"
@@ -14,7 +19,9 @@ function usage() {
     info "  # start edas config center"
     info "  [root@app1 ~]# $command_name config"
     info "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
-    info "  [root@app1 ~]# $command_name start 10.80.1.23 5005 8080 -e local_db_host=10.80.1.23"
+    info "  [root@app1 ~]# $command_name start --reg:10.80.1.23 \\ "
+    info "  > -e JAVA_OPTS='-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y'\\ "
+    info "  > -e local_db_host=10.80.1.23 -p 5005:5005"
     info "  # stop docker container for current maven module"
     info "  [root@app1 ~]# $command_name stop"
 }
@@ -42,20 +49,29 @@ if [ $# -eq 0 ] ;then
 	exit -1
 fi
 
-cmd=${1}
-registry_ip=${2:-192.168.103.108}
-debug_port=${3:-5005}
-web_port=${4:-8080}
+cmd=config
 
-if [ $# -le 3 ]
-then
-    shift $#
-else
-    shift 4
-fi
-options=${*:-}
+registry_ip=192.168.103.108
+config_ip=192.168.103.101
+options=""
+for c in $* ;do
+    case $c in
+        --reg:*)
+            registry_ip=${c#--reg:}
+            ;;
+        --cfg:*)
+            config_ip=${c#--cfg:}
+            ;;
+        config|logs|start|stop|ps)
+            cmd=$c
+            ;;
+        *)
+            options+="$c "
+            ;;
+    esac
+done
 
-info "Working with command: $cmd $registry_ip $debug_port $web_port $options";
+info "Working with command: $cmd $registry_ip $config_ip ${options}";
 container=edas-${PWD##*/};
 
 case $cmd in
@@ -70,6 +86,9 @@ case $cmd in
 		stop $container_config
 		docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
 		;;
+    ps)
+        docker ps -af name=$container
+        ;;
     start)
         stop $container
         if [ ! -e target -o ! -d target ] ;then
@@ -94,14 +113,16 @@ case $cmd in
 
         #/d/source/directory
         local_wd=$PWD/target/deploy;
-        #\\d\\source\\directory
-        local_wd=${local_wd//\//\\};
-        local_wd=${local_wd#\\};
-        local_wd=${local_wd/\\/:\\};
+        if [ -n "${USERPROFILE}" ] ;then
+            #bash from windows
+            local_wd=${local_wd//\//\\};
+            local_wd=${local_wd#\\};
+            local_wd=${local_wd/\\/:\\};
+        fi
 
         info "${local_wd//\\/\\\\}";
 
-        docker run --name=$container -d -p $debug_port:5005 -p $web_port:8080 -v $local_wd:/home/tomcat/deploy -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" --add-host=jmenv.tbsite.net:$registry_ip --add-host=config.tesir.top:192.168.103.101 $options index.tenxcloud.com/revolc/edas:latest;
+        docker run --name=$container -d -v $local_wd:/home/tomcat/deploy --add-host=jmenv.tbsite.net:$registry_ip --add-host=config.tesir.top:$config_ip $options index.tenxcloud.com/revolc/edas:latest;
         ;;
     *)
         usage
