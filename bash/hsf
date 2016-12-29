@@ -46,11 +46,11 @@ function stop() {
 }
 
 if [ $# -eq 0 ] ;then
-	usage
-	exit -1
+    usage
+    exit -1
 fi
 
-cmd=config
+cmd=
 
 registry_ip=192.168.103.108
 config_ip=192.168.103.101
@@ -64,18 +64,19 @@ for c in $* ;do
             config_ip=${c#--cfg:}
             ;;
         --dbg:*)
-            options+="-p ${c#--dbg:}:5005 -e JAVA_OPTS=\"-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y\" "
+            debug_port=${c#--dbg:}
             ;;
         config|logs|start|stop|ps)
             cmd=$c
             ;;
         *)
-            options+="$c "
+            options+="${c// /\\ } "
             ;;
     esac
 done
 
-info "Working with command: $cmd $registry_ip $config_ip ${options}";
+info "Working with command: "
+info "  $cmd $registry_ip $config_ip ${options}";
 container=edas-${PWD##*/};
 
 case $cmd in
@@ -86,10 +87,10 @@ case $cmd in
         docker logs -f $container
         ;;
     config)
-		container_config=edas-config-center
-		stop $container_config
-		docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
-		;;
+        container_config=edas-config-center
+        stop $container_config
+        docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
+        ;;
     ps)
         docker ps -af name=$container
         ;;
@@ -124,9 +125,21 @@ case $cmd in
             local_wd=${local_wd/\\/:\\};
         fi
 
-        info "${local_wd//\\/\\\\}";
+        info "Mounting ${local_wd//\\/\\\\} ...";
 
-        docker run --name=$container -d -v $local_wd:/home/tomcat/deploy --add-host=jmenv.tbsite.net:$registry_ip --add-host=config.tesir.top:$config_ip $options index.tenxcloud.com/revolc/edas:latest;
+        if [ -n "$debug_port" ] ;then
+            docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
+                --add-host=jmenv.tbsite.net:$registry_ip \
+                --add-host=config.tesir.top:$config_ip $options \
+                -p ${debug_port}:5005 \
+                -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" \
+                index.tenxcloud.com/revolc/edas:latest
+        else
+            docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
+                --add-host=jmenv.tbsite.net:$registry_ip \
+                --add-host=config.tesir.top:$config_ip $options \
+                index.tenxcloud.com/revolc/edas:latest
+        fi
         ;;
     *)
         usage
