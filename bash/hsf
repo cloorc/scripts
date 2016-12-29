@@ -6,13 +6,17 @@ command_name=${command_name##*/}
 
 function usage() {
     info "Usage:"
-    info "  $command_name {config|start [options]|stop|logs|ps}"
+    info "  $command_name {config [options]|start [options]|stop|logs [options]|ps}"
     info "Options:"
+    info "  config: add additional options for edas-config-center"
+    info "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
     info "  start: start container for current module"
-    info "    --reg:<registry-ip-address>           edas configuration server address"
-    info "    --cfg:<spring-cloud-config-server>    spring cloud config server address"
-    info "    --dbg:<debug-port>                    java remote debugger port"
-    info "    <docker-run-options>                  additional options comes from \`docker run --help\`"
+    info "    --reg:<registry-ip-address>           #edas configuration server address"
+    info "    --cfg:<spring-cloud-config-server>    #spring cloud config server address"
+    info "    --dbg:<debug-port>                    #java remote debugger port"
+    info "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+    info "  logs: display logging information for current container"
+    info "    <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
     info "Description:"
     info "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
     info "  Docker container named by current folder name with prefix of \`edas-\`"
@@ -84,12 +88,13 @@ case $cmd in
         stop $container
         ;;
     logs)
-        docker logs -f $container
+        docker logs $options $container
         ;;
     config)
         container_config=edas-config-center
         stop $container_config
-        docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 index.tenxcloud.com/revolc/edas-config-center:latest
+        docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 $options \
+            index.tenxcloud.com/revolc/edas-config-center:latest
         ;;
     ps)
         docker ps -af name=$container
