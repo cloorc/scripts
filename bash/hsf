@@ -5,44 +5,47 @@ command_name=${0%.*}
 command_name=${command_name##*/}
 
 function usage() {
-    info "Usage:"
-    info "  $command_name {config [options]|start [options]|stop|logs [options]|ps}"
-    info "Options:"
-    info "  config: add additional options for edas-config-center"
-    info "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
-    info "  start: start container for current module"
-    info "    --reg:<registry-ip-address>           #edas configuration server address"
-    info "    --cfg:<spring-cloud-config-server>    #spring cloud config server address"
-    info "    --hsf:<hsf.server.port>               #port for hsf server"
-    info "    --dbg:<debug-port>                    #java remote debugger port"
-    info "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
-    info "  logs: display logging information for current container"
-    info "    <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
-    info "Description:"
-    info "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
-    info "  Docker container named by current folder name with prefix of \`edas-\`"
-    info "Examples:"
-    info "  # start edas config center"
-    info "  [root@app1 ~]# $command_name config"
-    info "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
-    info "  [root@app1 ~]# $command_name start --reg:10.80.1.23 \\ "
-    info "  > -e JAVA_OPTS='-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y'\\ "
-    info "  > -e local_db_host=10.80.1.23 -p 5005:5005"
-    info "  # stop docker container for current maven module"
-    info "  [root@app1 ~]# $command_name stop"
+      red "Usage:"
+    green "  $command_name {config [options]|start [options]|stop|logs [options]|ps}"
+      red "Options:"
+      red "  config: add additional options for edas-config-center"
+    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+      red "  start: start container for current module"
+    green "    --reg:<registry-ip-address>           #edas configuration server address"
+    green "    --cfg:<spring-cloud-config-server>    #spring cloud config server address"
+    green "    --hsf:<hsf.server.port>               #port for hsf server"
+    green "    --dbg:<debug-port>                    #java remote debugger port"
+    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+      red "  logs: display logging greenrmation for current container"
+    green "    <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
+      red "Description:"
+    green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
+    green "  Docker container named by current folder name with prefix of \`edas-\`"
+      red "Examples:"
+      red "  # start edas config center"
+    green "  [root@app1 ~]# $command_name config"
+      red "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
+    green "  [root@app1 ~]# $command_name start --reg:10.80.1.23 \\ "
+    green "  > -e local_db_host=10.80.1.23 -p 5005:5005"
+      red "  # stop docker container for current maven module"
+    green "  [root@app1 ~]# $command_name stop"
 }
 
-function fatal() {
+function red() {
     echo -e "\033[31m$*\033[0m"
-    usage
 }
 
-function info() {
+function green() {
     echo -e "\033[32m$*\033[0m"
 }
 
+function fatal() {
+    red $*
+    usage
+}
+
 function stop() {
-    info "Trying to stop container: $1 ...";
+    green "Trying to stop container: $1 ...";
     count=`docker ps -f name=$1|wc -l`;
     [ $count -eq 2 ] && docker stop $1;
     count=`docker ps -af name=$1|wc -l`;
@@ -83,8 +86,8 @@ for c in $* ;do
     esac
 done
 
-info "Working with command: "
-info "  $cmd $registry_ip $config_ip ${options}";
+green "Working with command: "
+green "  $cmd $registry_ip $config_ip ${options}";
 container=edas-${PWD##*/};
 
 case $cmd in
@@ -110,7 +113,7 @@ case $cmd in
             exit -1
         fi
 
-        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s.*$"`
+        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[green\].*$"|grep -v "^.*\s.*$"`
 
         [ $? -ne 0 ] && {
             fatal "Cannot retrieve the final name for this artifact."
@@ -134,7 +137,7 @@ case $cmd in
             local_wd=${local_wd/\\/:\\};
         fi
 
-        info "Mounting ${local_wd//\\/\\\\} ...";
+        green "Mounting ${local_wd//\\/\\\\} ...";
 
         if [ -n "$debug_port" ] ;then
             if [ -n "${hsf_port}" ] ;then
