@@ -13,6 +13,7 @@ function usage() {
     info "  start: start container for current module"
     info "    --reg:<registry-ip-address>           #edas configuration server address"
     info "    --cfg:<spring-cloud-config-server>    #spring cloud config server address"
+    info "    --hsf:<hsf.server.port>               #port for hsf server"
     info "    --dbg:<debug-port>                    #java remote debugger port"
     info "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
     info "  logs: display logging information for current container"
@@ -69,6 +70,9 @@ for c in $* ;do
             ;;
         --dbg:*)
             debug_port=${c#--dbg:}
+            ;;
+        --hsf:*)
+            hsf_port=${c#--hsf:}
             ;;
         config|logs|start|stop|ps)
             cmd=$c
@@ -133,12 +137,22 @@ case $cmd in
         info "Mounting ${local_wd//\\/\\\\} ...";
 
         if [ -n "$debug_port" ] ;then
-            docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
-                --add-host=jmenv.tbsite.net:$registry_ip \
-                --add-host=config.tesir.top:$config_ip $options \
-                -p ${debug_port}:5005 \
-                -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" \
-                index.tenxcloud.com/revolc/edas:latest
+            if [ -n "${hsf_port}" ] ;then
+                docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
+                    --add-host=jmenv.tbsite.net:$registry_ip \
+                    --add-host=config.tesir.top:$config_ip $options \
+                    -p ${debug_port}:5005 \
+                    -p $hsf_port:$hsf_port -e HSF_PORT=$hsf_port -e HSF_HTTP_PORT=$hsf_port \
+                    -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" \
+                    index.tenxcloud.com/revolc/edas:latest
+            else
+                docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
+                    --add-host=jmenv.tbsite.net:$registry_ip \
+                    --add-host=config.tesir.top:$config_ip $options \
+                    -p ${debug_port}:5005 \
+                    -e JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y" \
+                    index.tenxcloud.com/revolc/edas:latest
+            fi
         else
             docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
                 --add-host=jmenv.tbsite.net:$registry_ip \
