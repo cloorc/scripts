@@ -25,8 +25,7 @@ function usage() {
       red "  # start edas config center"
     green "  [root@app1 ~]# $command_name config"
       red "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
-    green "  [root@app1 ~]# $command_name start --reg:10.80.1.23 \\ "
-    green "  > -e local_db_host=10.80.1.23 -p 5005:5005"
+    green "  [root@app1 ~]# $command_name start --reg:10.80.1.23 -e local_db_host=10.80.1.23 -p 5005:5005"
       red "  # stop docker container for current maven module"
     green "  [root@app1 ~]# $command_name stop"
 }
