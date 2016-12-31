@@ -2,6 +2,7 @@
 set -e
 
 if [ -n "${HSF_PORT}" -o -n "${HSF_HTTP_PORT}" ] ;then
+    echo "Preparing HSF server port ${HSF_PORT} and http port ${HSF_HTTP_PORT}"
     pushd /tmp
     jar -xvf /root/taobao-hsf.sar/plugins/hsf.jar.plugin lib/hsf.app.spring-2.1.1.3.jar
     jar -xvf lib/hsf.app.spring-2.1.1.3.jar hsfconfig.properties
@@ -16,6 +17,8 @@ if [ -n "${HSF_PORT}" -o -n "${HSF_HTTP_PORT}" ] ;then
             echo "hsf.http.port=${HSF_HTTP_PORT}" >> hsfconfig.properties
         fi
     fi
+    echo "New configurations: "
+    cat hsfconfig.properties
     jar -uvf lib/hsf.app.spring-2.1.1.3.jar hsfconfig.properties
     rm -rf hsfconfig.properties
     jar -uvf /root/taobao-hsf.sar/plugins/hsf.jar.plugin lib/hsf.app.spring-2.1.1.3.jar
