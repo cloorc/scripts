@@ -6,17 +6,24 @@ command_name=${command_name##*/}
 
 function usage() {
       red "Usage:"
-    green "  $command_name {config [options]|start [options]|stop|logs [options]|ps|exec <arguments>}"
+    green "  $command_name {config [options]|debug [options]|run [options]|stop|logs [options]|ps|exec <arguments>}"
       red "Options:"
       red "  config: add additional options for edas-config-center"
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
-      red "  start: start container for current module"
-    green "    --reg:<registry-ip-address>           #edas configuration server address"
-    green "    --cfg:<spring-cloud-config-server>    #spring cloud config server address"
-    green "    --hsf-port:<hsf.server.port>          #port for hsf server"
-    green "    --hsf-http-port:<hsf.http.port>       #port for hsf http protocol"
-    green "    --hsf-host:<hsf.server.ip>            #ip address for hsf publisher"
-    green "    --dbg:<debug-port>                    #java remote debugger port"
+      red "  debug: start container with java debugger enabled for current module"
+    green "    --reg=<registry-ip-address>           #edas configuration server address"
+    green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
+    green "    --hsf-port=<hsf.server.port>          #port for hsf server"
+    green "    --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
+    green "    --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
+    green "    --dbg=<debug-port>                    #java remote debugger port"
+    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+      red "  run: start container for current module"
+    green "    --reg=<registry-ip-address>           #edas configuration server address"
+    green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
+    green "    --hsf-port=<hsf.server.port>          #port for hsf server"
+    green "    --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
+    green "    --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  logs: display logging greenrmation for current container"
     green "    <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
@@ -29,7 +36,7 @@ function usage() {
       red "  # start edas config center"
     green "  [root@app1 ~]# $command_name config"
       red "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
-    green "  [root@app1 ~]# $command_name start --reg:10.80.1.23 -e local_db_host=10.80.1.23 -p 5005:5005"
+    green "  [root@app1 ~]# $command_name start --reg=10.80.1.23 -e local_db_host=10.80.1.23 -p 5005:5005"
       red "  # stop docker container for current maven module"
     green "  [root@app1 ~]# $command_name stop"
 }
@@ -69,32 +76,38 @@ options=""
 jvmoptions=""
 for c in $* ;do
     case $c in
-        --reg:*)
-            registry_ip=${c#*:}
+        --reg=*)
+            registry_ip=${c#*=}
             ;;
-        --cfg:*)
-            config_ip=${c#*:}
+        --cfg=*)
+            config_ip=${c#*=}
             ;;
-        --dbg:*)
-            v=${c#*:}
-            options+=" -p $v:$v"
-            jvmoptions+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:$v,suspend=n,server=y"
-            ;;
-        --hsf-port:*)
-            v=${c#*:}
+        --hsf-port=*)
+            v=${c#*=}
             options+=" -p $v:$v"
             jvmoptions+=" -Dhsf.server.port=$v"
             ;;
-        --hsf-http-port:*)
-            v=${c#*:}
+        --hsf-http-port=*)
+            v=${c#*=}
             options+=" -p $v:$v"
             jvmoptions+=" -Dhsf.http.port=$v"
             ;;
-        --hsf-host:*)
-            v=${c#*:}
+        --hsf-host=*)
+            v=${c#*=}
             jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$v"
             ;;
-        config|logs|start|stop|ps|exec)
+        config|logs|stop|ps|exec)
+            cmd=$c
+            ;;
+        debug)
+            cmd=$c
+            jvmoptions+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y"
+            ;;
+        --dbg=*)
+            v=${c#*=}
+            debug_port=$v
+            ;;
+        run)
             cmd=$c
             ;;
         *)
@@ -138,7 +151,7 @@ case $cmd in
         preview
         docker exec -it $container ${options:-bash}
         ;;
-    start)
+    debug|run)
         options+=" --add-host=jmenv.tbsite.net:${registry_ip:-192.168.103.108} --add-host=config.tesir.top:${config_ip:-192.168.103.101}"
         stop $container
         if [ ! -e target -o ! -d target ] ;then
@@ -171,10 +184,33 @@ case $cmd in
         fi
 
         green "Mounting ${local_wd//\\/\\\\} ...";
+        image=
+        case $cmd in
+            debug)
+                image=index.tenxcloud.com/revolc/edas:latest
+                if [ -n "$debug_port" ] ;then
+                    options+=" -p $debug_port:5005"
+                else
+                    options+=" -p 5005:5005"
+                fi
+                ;;
+            run)
+                image=index.tenxcloud.com/revolc/edas-production:latest
+                ;;
+            *)
+                fatal "Unexpected command $cmd"
+                exit -1
+                ;;
+        esac
+        
         preview
-        docker run --name=$container -d -v $local_wd:/home/tomcat/deploy \
-            ${options:+${options}} ${jvmoptions:+-e JAVA_OPTS="${jvmoptions}"} \
-            index.tenxcloud.com/revolc/edas:latest
+        if [ -n "$jvmoptions" ] ;then
+            docker run --name=$container -d -v $local_wd:/opt/taobao-tomcat-7.0.59/deploy \
+                ${options:+${options}} -e JAVA_OPTS="${jvmoptions}" $image
+        else
+            docker run --name=$container -d -v $local_wd:/opt/taobao-tomcat-7.0.59/deploy \
+                ${options:+${options}} $image
+        fi
         ;;
     *)
         usage
