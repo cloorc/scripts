@@ -145,7 +145,7 @@ for c in $* ;do
 done
 
 if [ ${using_default:-false} ] ;then
-    hsf_host=`java -jar ${BASH_SOURCE%/*}/ip.jar|grep "sitelocal-ipv4"|awk -F, '{print $3}'`
+    hsf_host=`java -jar ${BASH_SOURCE%/*}/ip.jar|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
 fi
 
 if [ -n "$hsf_host" ] ;then
