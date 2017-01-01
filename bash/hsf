@@ -6,25 +6,20 @@ command_name=${command_name##*/}
 
 function usage() {
       red "Usage:"
-    green "  $command_name {config [options]|debug [options]|run [options]|stop|logs [options]|ps|exec <arguments>}"
+    green "  $command_name {config [options]|debug [options]|run [options]|stop|logs [options]|ps|exec <arguments>}|upgrade"
       red "Options:"
       red "  config: add additional options for edas-config-center"
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+      red "  debug|run: start container for current module"
+    green "    --default                             #assign local ip address to \`--reg\` and \`--hsf-host\`"
+    green "    --reg=<registry-ip-address>           #edas configuration server address"
+    green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
+    green "    --hsf-port=<hsf.server.port>          #port for hsf server"
+    green "    --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
+    green "    --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
+    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
-    green "    --reg=<registry-ip-address>           #edas configuration server address"
-    green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
-    green "    --hsf-port=<hsf.server.port>          #port for hsf server"
-    green "    --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
-    green "    --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
     green "    --dbg=<debug-port>                    #java remote debugger port"
-    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
-      red "  run: start container for current module"
-    green "    --reg=<registry-ip-address>           #edas configuration server address"
-    green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
-    green "    --hsf-port=<hsf.server.port>          #port for hsf server"
-    green "    --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
-    green "    --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
-    green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  logs: display logging greenrmation for current container"
     green "    <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
       red "  exec: execute command in current container in interactive mode"
@@ -36,7 +31,8 @@ function usage() {
       red "  # start edas config center"
     green "  [root@app1 ~]# $command_name config"
       red "  # start docker container for current maven module and the config center host is \`10.80.1.23\`"
-    green "  [root@app1 ~]# $command_name start --reg=10.80.1.23 -e local_db_host=10.80.1.23 -p 5005:5005"
+    green "  [root@app1 ~]# $command_name debug --reg=10.80.1.23 --dbg=5005 -e local_db_host=10.80.1.23"
+    green "  [root@app1 ~]# $command_name run --reg=10.80.1.23 -e local_db_host=10.80.1.23"
       red "  # stop docker container for current maven module"
     green "  [root@app1 ~]# $command_name stop"
 }
@@ -63,10 +59,38 @@ function stop() {
     return 0
 }
 
-if [ $# -eq 0 ] ;then
-    usage
-    exit -1
-fi
+function preview() {
+    options=${options# }
+    jvmoptions=${jvmoptions# }
+    green "You are going to execute : "
+      red "   action : $cmd"
+      red "  options : $options"
+      red "      jvm : $jvmoptions"
+}
+
+function upgrade() {
+    for e in $* ;do
+        case $e in
+            */ip.jar)
+                curl -skSL http://git.oschina.net/soiff/soiff-ip/raw/master/releases/ip.jar -o $e
+                return $?
+                ;;
+            */hsf)
+                curl -skSL http://git.oschina.net/soiff/script/raw/master/bash/hsf -o $e
+                return $?
+                ;;
+        esac
+    done
+}
+
+function check() {
+    ip="${BASH_SOURCE%/*}/ip.jar"
+    if [ ! -e "${ip}" ] ;then
+        upgrade "$ip"
+    fi
+}
+
+check
 
 cmd=
 
@@ -76,6 +100,9 @@ options=""
 jvmoptions=""
 for c in $* ;do
     case $c in
+        --default)
+            using_default=true
+            ;;
         --reg=*)
             registry_ip=${c#*=}
             ;;
@@ -84,8 +111,7 @@ for c in $* ;do
             ;;
         --hsf-port=*)
             v=${c#*=}
-            options+=" -p $v:$v"
-            jvmoptions+=" -Dhsf.server.port=$v"
+            hsf_port=$v
             ;;
         --hsf-http-port=*)
             v=${c#*=}
@@ -94,9 +120,9 @@ for c in $* ;do
             ;;
         --hsf-host=*)
             v=${c#*=}
-            jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$v"
+            hsf_host=$v
             ;;
-        config|logs|stop|ps|exec)
+        config|logs|stop|ps|exec|run)
             cmd=$c
             ;;
         debug)
@@ -107,8 +133,10 @@ for c in $* ;do
             v=${c#*=}
             debug_port=$v
             ;;
-        run)
-            cmd=$c
+        upgrade)
+            upgrade "${BASH_SOURCE%/*}/ip.jar"
+            upgrade "${BASH_SOURCE}"
+            exit $?
             ;;
         *)
             options+=" ${c// /\\ }"
@@ -116,14 +144,18 @@ for c in $* ;do
     esac
 done
 
-function preview() {
-    options=${options# }
-    jvmoptions=${jvmoptions# }
-    green "Command provisioning : "
-      red "  command: $cmd"
-      red "  options: $options"
-      red "  jvm    : $jvmoptions"
-}
+if [ ${using_default:-false} ] ;then
+    hsf_host=`java -jar ${BASH_SOURCE%/*}/ip.jar|grep "sitelocal-ipv4"|awk -F, '{print $3}'`
+fi
+
+if [ -n "$hsf_host" ] ;then
+    jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$hsf_host"
+fi
+
+if [ -n "$hsf_port" ] ;then
+    options+=" -p $hsf_port:$hsf_port"
+    jvmoptions+=" -Dhsf.server.port=$hsf_port"
+fi
 
 container=edas-${PWD##*/};
 
