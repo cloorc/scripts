@@ -145,7 +145,7 @@ for c in $* ;do
     esac
 done
 
-if [ ${using_default:-false} ] ;then
+if [ "${using_default:-false}" == "true" ] ;then
     hsf_host=`java -jar ${BASH_SOURCE%/*}/ip.jar|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
     if [ -z "$hsf_port" ] ;then
         hsf_port=12345
