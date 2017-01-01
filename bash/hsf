@@ -12,6 +12,7 @@ function usage() {
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
     green "    --default                             #assign local ip address to \`--reg\` and \`--hsf-host\`"
+    green "                                          #and assign port 12345 to \`--hsf-port\` if it's not specified"
     green "    --reg=<registry-ip-address>           #edas configuration server address"
     green "    --cfg=<spring-cloud-config-server>    #spring cloud config server address"
     green "    --hsf-port=<hsf.server.port>          #port for hsf server"
@@ -146,6 +147,9 @@ done
 
 if [ ${using_default:-false} ] ;then
     hsf_host=`java -jar ${BASH_SOURCE%/*}/ip.jar|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
+    if [ -z "$hsf_port" ] ;then
+        hsf_port=12345
+    fi
 fi
 
 if [ -n "$hsf_host" ] ;then
