@@ -55,9 +55,10 @@ function fatal() {
 }
 
 function stop() {
-    green "Trying to stop container: $1 ...";
+    green "Trying to stop container $1 ...";
     count=`docker ps -f name=$1|wc -l`;
     [ $count -eq 2 ] && docker stop $1;
+    green "Trying to remove container $1 ..."
     count=`docker ps -af name=$1|wc -l`;
     [ $count -eq 2 ] && docker rm $1;
     return 0
