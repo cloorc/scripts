@@ -150,6 +150,9 @@ if [ "${using_default:-false}" == "true" ] ;then
     if [ -z "$hsf_port" ] ;then
         hsf_port=12345
     fi
+    if [ -z "$registry_ip" ] ;then
+        registry_ip=$hsf_host
+    fi
 fi
 
 if [ -n "$hsf_host" ] ;then
