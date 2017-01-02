@@ -156,13 +156,15 @@ for c in $* ;do
     esac
 done
 
+container=edas-${PWD##*/};
+
 if [ "${using_default:-false}" == "true" ] ;then
     hsf_host=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
     if [ -z "$hsf_port" ] ;then
-        hsf_port=`java -jar $jar_port`
+        hsf_port=`java -jar $jar_port $container`
     fi
     if [ -z "$debug_port" ] ;then
-        debug_port=`java -jar $jar_port`
+        debug_port=`java -jar $jar_port debug-$container`
     fi
     if [ -z "$registry_ip" ] ;then
         registry_ip=$hsf_host
@@ -177,8 +179,6 @@ if [ -n "$hsf_port" ] ;then
     options+=" -p $hsf_port:$hsf_port"
     jvmoptions+=" -Dhsf.server.port=$hsf_port"
 fi
-
-container=edas-${PWD##*/};
 
 case $cmd in
     stop)
