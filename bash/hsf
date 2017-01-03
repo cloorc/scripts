@@ -171,12 +171,6 @@ container=edas-${PWD##*/};
 
 if [ "${opt_default:-false}" == "true" ] ;then
     opt_hsf_host=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
-    if [ -z "$opt_hsf_port" ] ;then
-        opt_hsf_port=`java -jar $jar_port $container`
-    fi
-    if [ -z "$opt_debug_port" ] ;then
-        opt_debug_port=`java -jar $jar_port debug-$container`
-    fi
     if [ -z "$opt_registry" ] ;then
         opt_registry=$opt_hsf_host
     fi
@@ -186,10 +180,18 @@ if [ -n "$opt_hsf_host" ] ;then
     jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
 fi
 
-if [ -n "$opt_hsf_port" ] ;then
-    options+=" -p $opt_hsf_port:$opt_hsf_port"
-    jvmoptions+=" -Dhsf.server.port=$opt_hsf_port"
-fi
+function initial() {
+    if [ -z "$opt_hsf_port" ] ;then
+        opt_hsf_port=`java -jar $jar_port $container`
+    fi
+    if [ -z "$opt_debug_port" ] ;then
+        opt_debug_port=`java -jar $jar_port debug-$container`
+    fi
+    if [ -n "$opt_hsf_port" ] ;then
+        options+=" -p $opt_hsf_port:$opt_hsf_port"
+        jvmoptions+=" -Dhsf.server.port=$opt_hsf_port"
+    fi
+}
 
 case $cmd in
     stop)
@@ -252,6 +254,7 @@ case $cmd in
             local_wd=${local_wd/\\/:\\};
         fi
 
+        initial
         green "Mounting ${local_wd//\\/\\\\} ...";
         image=
         case $cmd in
