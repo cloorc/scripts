@@ -6,6 +6,8 @@ command_name=${command_name##*/}
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
+const_ip=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
+
 function usage() {
       red "Usage:"
     green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
@@ -170,7 +172,9 @@ done
 container=edas-${PWD##*/};
 
 if [ "${opt_default:-false}" == "true" ] ;then
-    opt_hsf_host=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
+    if [ -z "$opt_hsf_host" ] ;then
+        opt_hsf_host=$const_ip
+    fi
     if [ -z "$opt_registry" ] ;then
         opt_registry=$opt_hsf_host
     fi
@@ -204,14 +208,14 @@ case $cmd in
         ;;
     config)
         container=edas-config-center
+        options+=" -e SERVER_IP=$const_ip -p 8080:8080 -p 9600:9600"
         preview
         exist $container
         if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
             docker ps -f name=$container
         else
             stop $container
-            docker run --name=$container -d -p 8080:8080 -p 9600:9600 $options \
-                index.tenxcloud.com/revolc/edas-config-center:latest
+            docker run --name=$container -d $options index.tenxcloud.com/revolc/edas-config-center:latest
         fi
         ;;
     ps)
