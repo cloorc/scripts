@@ -93,7 +93,7 @@ function upgrade() {
                 return $?
                 ;;
             $BASH_SOURCE)
-                curl -skSL http://git.oschina.net/soiff/script/raw/master/bash/hsf -o $e && chmod +x $e
+                curl -skSL http://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o $e && chmod +x $e
                 return $?
                 ;;
         esac
