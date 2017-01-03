@@ -24,6 +24,7 @@ function single() {
             else
             	rep=$2
             fi
+            git remote remove oschina
         	git remote add oschina git@git.oschina.net:$rep
         	git remote -v
         	git push oschina master
