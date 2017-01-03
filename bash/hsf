@@ -184,6 +184,10 @@ if [ -n "$opt_hsf_host" ] ;then
     jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
 fi
 
+if [ -z "$opt_registry" ] ;then
+    opt_registry="192.168.103.108"
+fi
+
 function initial() {
     if [ -z "$opt_hsf_port" ] ;then
         opt_hsf_port=`java -jar $jar_port $container`
