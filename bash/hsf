@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 command_name=${0%.*}
 command_name=${command_name##*/}
@@ -13,7 +12,7 @@ function usage() {
       red "Options:"
       red "  config: add additional options for edas-config-center"
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
-    green "    --reset                               #spring cloud config server address"
+    green "    --reset                               #remove container and restart it"
       red "  debug|run: start container for current module"
     green "    --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
     green "                                          #and assign random port to \`--hsf-port\` if it's not specified"
@@ -65,8 +64,8 @@ function exist() {
 
 function stop() {
     green "Trying to stop container $1 ...";
-    count=`docker ps -f name=$1|wc -l`;
-    [ $count -eq 2 ] && docker stop $1;
+    exist $1
+    [ $? -eq 0 ] && docker stop $1;
     green "Trying to remove container $1 ..."
     count=`docker ps -af name=$1|wc -l`;
     [ $count -eq 2 ] && docker rm $1;
@@ -121,10 +120,7 @@ jvmoptions=""
 for c in $* ;do
     case $c in
         --reset)
-            opt_reset=true
-            ;;
-        --stop)
-            opt_stop=true
+            opt_reset=1
             ;;
         --auto)
             opt_default=true
@@ -157,7 +153,7 @@ for c in $* ;do
             ;;
         --dbg=*)
             v=${c#*=}
-            debug_port=$v
+            opt_debug_port=$v
             ;;
         upgrade)
             upgrade "$jar_ip"
@@ -178,8 +174,8 @@ if [ "${opt_default:-false}" == "true" ] ;then
     if [ -z "$opt_hsf_port" ] ;then
         opt_hsf_port=`java -jar $jar_port $container`
     fi
-    if [ -z "$debug_port" ] ;then
-        debug_port=`java -jar $jar_port debug-$container`
+    if [ -z "$opt_debug_port" ] ;then
+        opt_debug_port=`java -jar $jar_port debug-$container`
     fi
     if [ -z "$opt_registry" ] ;then
         opt_registry=$opt_hsf_host
@@ -208,17 +204,12 @@ case $cmd in
         container=edas-config-center
         preview
         exist $container
-        e=$?
-        if [ "${opt_reset:-}" == "true" -o "$e" != "0" ] ;then
-            if [ $e -eq 0 ] ;then
-                stop $container
-            fi
+        if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
+            docker ps -f name=$container
+        else
+            stop $container
             docker run --name=$container -d -p 8080:8080 -p 9600:9600 $options \
                 index.tenxcloud.com/revolc/edas-config-center:latest
-        elif [[ "$opt_stop" == "true" ]]; then
-            docker stop $container
-        else
-            docker ps -f name=$container
         fi
         ;;
     ps)
@@ -266,8 +257,8 @@ case $cmd in
         case $cmd in
             debug)
                 image=index.tenxcloud.com/revolc/edas:latest
-                if [ -n "$debug_port" ] ;then
-                    options+=" -p $debug_port:5005"
+                if [ -n "$opt_debug_port" ] ;then
+                    options+=" -p $opt_debug_port:5005"
                 else
                     options+=" -p 5005:5005"
                 fi
