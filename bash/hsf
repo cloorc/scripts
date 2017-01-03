@@ -87,15 +87,15 @@ function upgrade() {
     for e in $* ;do
         case $e in
             $jar_ip)
-                curl -skSL http://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar -o $e
+                curl -skSL https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar -o $e
                 return $?
                 ;;
             $jar_port)
-                curl -skSL http://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar -o $e
+                curl -skSL https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar -o $e
                 return $?
                 ;;
             $BASH_SOURCE)
-                curl -skSL http://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o $e && chmod +x $e
+                curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o $e && chmod +x $e
                 return $?
                 ;;
         esac
