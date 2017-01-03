@@ -9,10 +9,11 @@ jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
 function usage() {
       red "Usage:"
-    green "  $command_name {config [options]|debug [options]|run [options]|stop|logs [options]|ps|exec <arguments>}|upgrade"
+    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
       red "Options:"
       red "  config: add additional options for edas-config-center"
     green "    <docker-run-options>                  #additional options comes from \`docker run --help\`"
+    green "    --reset                               #spring cloud config server address"
       red "  debug|run: start container for current module"
     green "    --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
     green "                                          #and assign random port to \`--hsf-port\` if it's not specified"
@@ -52,6 +53,14 @@ function green() {
 function fatal() {
     red $*
     usage
+}
+
+function exist() {
+    count=`docker ps -f name=$1|wc -l`;
+    if [ $count -eq 2 ] ;then
+        return 0
+    fi
+    return -1
 }
 
 function stop() {
@@ -105,24 +114,30 @@ check
 
 cmd=
 
-registry_ip=
-config_ip=
+opt_registry=
+opt_config=
 options=""
 jvmoptions=""
 for c in $* ;do
     case $c in
+        --reset)
+            opt_reset=true
+            ;;
+        --stop)
+            opt_stop=true
+            ;;
         --auto)
-            using_default=true
+            opt_default=true
             ;;
         --reg=*)
-            registry_ip=${c#*=}
+            opt_registry=${c#*=}
             ;;
         --cfg=*)
-            config_ip=${c#*=}
+            opt_config=${c#*=}
             ;;
         --hsf-port=*)
             v=${c#*=}
-            hsf_port=$v
+            opt_hsf_port=$v
             ;;
         --hsf-http-port=*)
             v=${c#*=}
@@ -131,7 +146,7 @@ for c in $* ;do
             ;;
         --hsf-host=*)
             v=${c#*=}
-            hsf_host=$v
+            opt_hsf_host=$v
             ;;
         config|logs|stop|ps|exec|run)
             cmd=$c
@@ -158,26 +173,26 @@ done
 
 container=edas-${PWD##*/};
 
-if [ "${using_default:-false}" == "true" ] ;then
-    hsf_host=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
-    if [ -z "$hsf_port" ] ;then
-        hsf_port=`java -jar $jar_port $container`
+if [ "${opt_default:-false}" == "true" ] ;then
+    opt_hsf_host=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
+    if [ -z "$opt_hsf_port" ] ;then
+        opt_hsf_port=`java -jar $jar_port $container`
     fi
     if [ -z "$debug_port" ] ;then
         debug_port=`java -jar $jar_port debug-$container`
     fi
-    if [ -z "$registry_ip" ] ;then
-        registry_ip=$hsf_host
+    if [ -z "$opt_registry" ] ;then
+        opt_registry=$opt_hsf_host
     fi
 fi
 
-if [ -n "$hsf_host" ] ;then
-    jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$hsf_host"
+if [ -n "$opt_hsf_host" ] ;then
+    jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
 fi
 
-if [ -n "$hsf_port" ] ;then
-    options+=" -p $hsf_port:$hsf_port"
-    jvmoptions+=" -Dhsf.server.port=$hsf_port"
+if [ -n "$opt_hsf_port" ] ;then
+    options+=" -p $opt_hsf_port:$opt_hsf_port"
+    jvmoptions+=" -Dhsf.server.port=$opt_hsf_port"
 fi
 
 case $cmd in
@@ -190,11 +205,21 @@ case $cmd in
         docker logs $options $container
         ;;
     config)
-        container_config=edas-config-center
-        stop $container_config
+        container=edas-config-center
         preview
-        docker run --name=$container_config -d -p 8080:8080 -p 9600:9600 $options \
-            index.tenxcloud.com/revolc/edas-config-center:latest
+        exist $container
+        e=$?
+        if [ "${opt_reset:-}" == "true" -o "$e" != "0" ] ;then
+            if [ $e -eq 0 ] ;then
+                stop $container
+            fi
+            docker run --name=$container -d -p 8080:8080 -p 9600:9600 $options \
+                index.tenxcloud.com/revolc/edas-config-center:latest
+        elif [[ "$opt_stop" == "true" ]]; then
+            docker stop $container
+        else
+            docker ps -f name=$container
+        fi
         ;;
     ps)
         preview
@@ -205,7 +230,7 @@ case $cmd in
         docker exec -it $container ${options:-bash}
         ;;
     debug|run)
-        options+=" --add-host=jmenv.tbsite.net:${registry_ip:-192.168.103.108} --add-host=config.tesir.top:${config_ip:-192.168.103.101}"
+        options+=" --add-host=jmenv.tbsite.net:${opt_registry:-192.168.103.108} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
         stop $container
         if [ ! -e target -o ! -d target ] ;then
             fatal "Target is not exist or is not a folder."
