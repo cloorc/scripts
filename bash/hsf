@@ -257,7 +257,7 @@ case $cmd in
         fi
 
         if [ ! -e "target/deploy/$finalName.war" ] ;then
-            cp target/$finalName.war target/deploy/$finalName.war
+            cp "target/$finalName.war" "target/deploy/$finalName.war"
         fi
 
         #/d/source/directory
