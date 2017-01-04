@@ -14,7 +14,7 @@ function usage() {
       red "Options:"
       red "  config: add additional options for edas-config-center"
     green "  --reset                               #remove container and restart it"
-    green "  --reg                                 #custom registry ip address"
+    green "  --reg=<registry-ip-address>           #custom registry ip address"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
     green "  --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
