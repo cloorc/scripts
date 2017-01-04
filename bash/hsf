@@ -247,7 +247,7 @@ case $cmd in
             exit -1
         fi
 
-        if [ ! -e target/$finalName.war ] ;then
+        if [ ! -e "target/$finalName.war" ] ;then
             fatal "Not a valid hsf application."
             exit -1
         fi
