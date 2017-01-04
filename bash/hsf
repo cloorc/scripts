@@ -6,20 +6,19 @@ command_name=${command_name##*/}
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
-const_ip=`java -jar $jar_ip`
+const_ip=`java -jar ${jar_ip}`
 
 function usage() {
       red "Usage:"
     green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
-      red "Options:"
+      red "docker_opts:"
     green "  --verbose                             #show verbose information"
-      red "  config: add additional options for edas-config-center"
+      red "  config: add additional docker_opts for edas-config-center"
     green "  --reset                               #remove container and restart it"
     green "  --reg=<registry-ip-address>           #custom registry ip address"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
     green "  --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
-    green "                                        #and assign random port to \`--hsf-port\` if it's not specified"
     green "  --reg=<registry-ip-address>           #edas configuration server address"
     green "  --cfg=<spring-cloud-config-server>    #spring cloud config server address"
     green "  --hsf-port=<hsf.server.port>          #port for hsf server"
@@ -68,7 +67,7 @@ function fatal() {
 
 function exist() {
     count=`docker ps -f name=$1|wc -l`;
-    if [ $count -eq 2 ] ;then
+    if [ ${count} -eq 2 ] ;then
         return 0
     fi
     return -1
@@ -80,33 +79,34 @@ function stop() {
     [ $? -eq 0 ] && docker stop $1;
     green "Trying to remove container $1 ..."
     count=`docker ps -af name=$1|wc -l`;
-    [ $count -eq 2 ] && docker rm $1;
+    [ ${count} -eq 2 ] && docker rm $1;
     return 0
 }
 
 function preview() {
-    options=${options# }
-    jvmoptions=${jvmoptions# }
-    green "################################################################################"
-      red "   action : ${cmd}"
-      red "  options : ${options}"
-      red "      jvm : ${jvmoptions}"
-    green "################################################################################"
+    docker_opts=${docker_opts# }
+    java_opts=${java_opts# }
+    # 79 characters
+    green "###############################################################################"
+      red "        command : ${cmd}"
+      red " docker options : ${docker_opts}"
+      red "   java options : ${java_opts}"
+    green "###############################################################################"
 }
 
 function upgrade() {
     for e in $* ;do
-        case $e in
-            $jar_ip)
-                curl -skSL https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar -o $e
+        case ${e} in
+            ${jar_ip})
+                curl -skSL https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar -o ${e}
                 return $?
                 ;;
-            $jar_port)
-                curl -skSL https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar -o $e
+            ${jar_port})
+                curl -skSL https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar -o ${e}
                 return $?
                 ;;
             $BASH_SOURCE)
-                curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o $e && chmod +x $e
+                curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o ${e} && chmod +x ${e}
                 return $?
                 ;;
         esac
@@ -114,8 +114,8 @@ function upgrade() {
 }
 
 function check() {
-    components=( "$jar_ip $jar_port" )
-    for c in $components ;do
+    components="$jar_ip $jar_port"
+    for c in ${components} ;do
         if [ ! -e "${c}" ] ;then
             upgrade "$c"
         fi
@@ -134,10 +134,10 @@ cmd=
 
 opt_registry=
 opt_config=
-options=""
-jvmoptions=""
+docker_opts=""
+java_opts=""
 for c in $* ;do
-    case $c in
+    case ${c} in
         --reset)
             opt_reset=1
             ;;
@@ -152,34 +152,34 @@ for c in $* ;do
             ;;
         --hsf-port=*)
             v=${c#*=}
-            opt_hsf_port=$v
+            opt_hsf_port=${v}
             ;;
         --hsf-http-port=*)
             v=${c#*=}
-            options+=" -p $v:$v"
-            jvmoptions+=" -Dhsf.http.port=$v"
+            docker_opts+=" -p $v:$v"
+            java_opts+=" -Dhsf.http.port=$v"
             ;;
         --hsf-host=*)
             v=${c#*=}
-            opt_hsf_host=$v
+            opt_hsf_host=${v}
             ;;
         --war=*)
             v=${c#*=}
-            opt_war=$v
+            opt_war=${v}
             ;;
         --verbose)
             opt_verbose=true
             ;;
         config|logs|stop|ps|exec|run|test)
-            cmd=$c
+            cmd=${c}
             ;;
         debug)
-            cmd=$c
-            jvmoptions+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y"
+            cmd=${c}
+            java_opts+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y"
             ;;
         --dbg=*)
             v=${c#*=}
-            opt_debug_port=$v
+            opt_debug_port=${v}
             ;;
         upgrade)
             upgrade "$jar_ip"
@@ -188,71 +188,72 @@ for c in $* ;do
             exit $?
             ;;
         *)
-            options+=" ${c// /\\ }"
+            docker_opts+=" ${c// /\\ }"
             ;;
     esac
 done
 
 container=edas-${PWD##*/};
 
-if [ "${opt_default:-false}" == "true" ] ;then
-    if [ -z "$opt_hsf_host" ] ;then
-        opt_hsf_host=$const_ip
-    fi
-    if [ -z "$opt_registry" ] ;then
-        opt_registry=$opt_hsf_host
+if [ -z "$opt_hsf_host" ] ;then
+    opt_hsf_host=${const_ip}
+fi
+if [ -z "$opt_registry" ] ;then
+    if [ "$opt_default" == "true" ] ;then
+        opt_registry=${const_ip}
+    else
+        opt_registry="192.168.103.108"
     fi
 fi
-
 if [ -n "$opt_hsf_host" ] ;then
-    jvmoptions+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
+    java_opts+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
 fi
 
 function initial() {
     if [ -z "$opt_hsf_port" ] ;then
-        opt_hsf_port=`java -jar $jar_port $container`
+        opt_hsf_port=`java -jar ${jar_port} ${container}`
     fi
     if [ -z "$opt_debug_port" ] ;then
-        opt_debug_port=`java -jar $jar_port debug-$container`
+        opt_debug_port=`java -jar ${jar_port} debug-${container}`
     fi
     if [ -n "$opt_hsf_port" ] ;then
-        options+=" -p $opt_hsf_port:$opt_hsf_port"
-        jvmoptions+=" -Dhsf.server.port=$opt_hsf_port"
+        docker_opts+=" -p $opt_hsf_port:$opt_hsf_port"
+        java_opts+=" -Dhsf.server.port=$opt_hsf_port"
     fi
 }
 
-case $cmd in
+case ${cmd} in
     stop)
         preview
-        stop $container
+        stop ${container}
         ;;
     logs)
         preview
-        docker logs $options $container
+        docker logs ${docker_opts} ${container}
         ;;
     config)
         container=edas-config-center
-        options+=" -e SERVER_IP=${opt_registry:-$const_ip} -p 8080:8080 -p 9600:9600"
+        docker_opts+=" -e SERVER_IP=${opt_registry} -p 8080:8080 -p 9600:9600"
         preview
-        exist $container
+        exist ${container}
         if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
-            docker ps -f name=$container
+            docker ps -f name=${container}
         else
-            stop $container
-            docker run --name=$container -d $options index.tenxcloud.com/revolc/edas-config-center:latest
+            stop ${container}
+            docker run --name=${container} -d ${docker_opts} index.tenxcloud.com/revolc/edas-config-center:latest
         fi
         ;;
     ps)
         preview
-        docker ps -af name=$container
+        docker ps -af name=${container}
         ;;
     exec)
         preview
-        docker exec -it $container ${options:-bash}
+        docker exec -it ${container} ${docker_opts:-bash}
         ;;
     debug|run)
-        options+=" --add-host=jmenv.tbsite.net:${opt_registry:-192.168.103.108} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
-        stop $container
+        docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
+        stop ${container}
 
         finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s+.*$"`
         if [ $? -ne 0 ] ;then
@@ -290,13 +291,13 @@ case $cmd in
         initial
         green "Mounting ${local_wd//\\/\\\\} ...";
         image=
-        case $cmd in
+        case ${cmd} in
             debug)
                 image=index.tenxcloud.com/revolc/edas:latest
                 if [ -n "$opt_debug_port" ] ;then
-                    options+=" -p $opt_debug_port:5005"
+                    docker_opts+=" -p $opt_debug_port:5005"
                 else
-                    options+=" -p 5005:5005"
+                    docker_opts+=" -p 5005:5005"
                 fi
                 ;;
             run)
@@ -309,12 +310,12 @@ case $cmd in
         esac
         
         preview
-        if [ -n "$jvmoptions" ] ;then
-            docker run --name=$container -d -v $local_wd:/opt/taobao-tomcat-7.0.59/deploy \
-                ${options:+${options}} -e JAVA_OPTS="${jvmoptions}" $image
+        if [ -n "$java_opts" ] ;then
+            docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
+                ${docker_opts:+${docker_opts}} -e JAVA_OPTS="${java_opts}" ${image}
         else
-            docker run --name=$container -d -v $local_wd:/opt/taobao-tomcat-7.0.59/deploy \
-                ${options:+${options}} $image
+            docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
+                ${docker_opts:+${docker_opts}} ${image}
         fi
         ;;
     *)
