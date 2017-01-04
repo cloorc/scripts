@@ -25,6 +25,7 @@ function usage() {
     green "  --hsf-port=<hsf.server.port>          #port for hsf server"
     green "  --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
     green "  --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
+    green "  --war=<path-to-war>                   #full path to war package"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
@@ -159,6 +160,10 @@ for c in $* ;do
             v=${c#*=}
             opt_hsf_host=$v
             ;;
+        --war=*)
+            v=${c#*=}
+            opt_war=$v
+            ;;
         --verbose)
             opt_verbose=true
             ;;
@@ -245,32 +250,29 @@ case $cmd in
     debug|run)
         options+=" --add-host=jmenv.tbsite.net:${opt_registry:-192.168.103.108} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
         stop $container
-        if [ ! -e target -o ! -d target ] ;then
-            fatal "Target is not exist or is not a folder."
-            exit -1
-        fi
 
         finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s+.*$"`
-
         if [ $? -ne 0 ] ;then
             fatal "Cannot retrieve the final name for this artifact."
             exit -1
         fi
 
-        verbose "Package 'target/$finalName.war' will be mounted ..."
+        const_war="${opt_war:-target/$finalName.war}"
+        const_target_war="target/deploy/${const_war##*/}"
+        verbose "Package '${const_war}' will be mounted ..."
 
-        if [ ! -e "target/$finalName.war" ] ;then
-            fatal "Not a valid hsf application."
+        if [ ! -e "$const_war" ] ;then
+            fatal "Not a valid hsf application : ${const_war}."
             exit -1
         fi
 
         if [ ! -e "target/deploy" ] ;then
-            mkdir target/deploy
+            mkdir -p target/deploy
         fi
 
-        if [ ! -e "target/deploy/$finalName.war" ] ;then
-            verbose "Copying file 'target/$finalName.war' to 'target/deploy/' ..."
-            cp "target/$finalName.war" "target/deploy/$finalName.war"
+        if [ ! -e "${const_target_war}" ] ;then
+            verbose "Copying file '$const_war' to '${const_target_war}' ..."
+            cp "$const_war" "${const_target_war}"
         fi
 
         #/d/source/directory
