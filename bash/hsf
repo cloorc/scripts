@@ -12,6 +12,7 @@ function usage() {
       red "Usage:"
     green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
       red "Options:"
+    green "  --verbose                             #show verbose information"
       red "  config: add additional options for edas-config-center"
     green "  --reset                               #remove container and restart it"
     green "  --reg=<registry-ip-address>           #custom registry ip address"
@@ -117,6 +118,12 @@ function check() {
     done
 }
 
+function verbose() {
+    if [ "$opt_verbose" == "true" ] ;then
+        green "$*"
+    fi
+}
+
 check
 
 cmd=
@@ -151,6 +158,9 @@ for c in $* ;do
         --hsf-host=*)
             v=${c#*=}
             opt_hsf_host=$v
+            ;;
+        --verbose)
+            opt_verbose=true
             ;;
         config|logs|stop|ps|exec|run)
             cmd=$c
@@ -247,6 +257,8 @@ case $cmd in
             exit -1
         fi
 
+        verbose "Package 'target/$finalName.war' will be mounted ..."
+
         if [ ! -e "target/$finalName.war" ] ;then
             fatal "Not a valid hsf application."
             exit -1
@@ -257,6 +269,7 @@ case $cmd in
         fi
 
         if [ ! -e "target/deploy/$finalName.war" ] ;then
+            verbose "Copying file 'target/$finalName.war' to 'target/deploy/' ..."
             cp "target/$finalName.war" "target/deploy/$finalName.war"
         fi
 
