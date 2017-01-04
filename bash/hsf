@@ -18,7 +18,7 @@ function usage() {
     green "  --reg=<registry-ip-address>           #custom registry ip address"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
-    green "  --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
+    green "  --reg                                 #use ''192.168.103.108'' as edas configuration server address"
     green "  --reg=<registry-ip-address>           #edas configuration server address"
     green "  --cfg=<spring-cloud-config-server>    #spring cloud config server address"
     green "  --hsf-port=<hsf.server.port>          #port for hsf server"
@@ -141,11 +141,12 @@ for c in $* ;do
         --reset)
             opt_reset=1
             ;;
-        --auto)
-            opt_default=true
-            ;;
-        --reg=*)
-            opt_registry=${c#*=}
+        --reg|--reg=*)
+            if [ "${c}" == "--reg" ] ;then
+                opt_registry="192.168.103.108"
+            else
+                opt_registry=${c#*=}
+            fi
             ;;
         --cfg=*)
             opt_config=${c#*=}
@@ -199,11 +200,7 @@ if [ -z "$opt_hsf_host" ] ;then
     opt_hsf_host=${const_ip}
 fi
 if [ -z "$opt_registry" ] ;then
-    if [ "$opt_default" == "true" ] ;then
-        opt_registry=${const_ip}
-    else
-        opt_registry="192.168.103.108"
-    fi
+    opt_registry=${const_ip}
 fi
 if [ -n "$opt_hsf_host" ] ;then
     java_opts+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
