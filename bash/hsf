@@ -13,8 +13,9 @@ function usage() {
     green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
       red "Options:"
       red "  config: add additional options for edas-config-center"
-    green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
     green "  --reset                               #remove container and restart it"
+    green "  --reg                                 #custom registry ip address"
+    green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
     green "  --auto                                #assign local ip address to \`--reg\` and \`--hsf-host\`"
     green "                                        #and assign random port to \`--hsf-port\` if it's not specified"
@@ -213,7 +214,7 @@ case $cmd in
         ;;
     config)
         container=edas-config-center
-        options+=" -e SERVER_IP=$const_ip -p 8080:8080 -p 9600:9600"
+        options+=" -e SERVER_IP=${opt_registry:-$const_ip} -p 8080:8080 -p 9600:9600"
         preview
         exist $container
         if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
@@ -241,18 +242,23 @@ case $cmd in
 
         finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[green\].*$"|grep -v "^.*\s.*$"`
 
-        [ $? -ne 0 ] && {
+        if [ $? -ne 0 ] ;then
             fatal "Cannot retrieve the final name for this artifact."
             exit -1
-        }
+        fi
 
-        [ ! -e target/$finalName.war ] && {
+        if [ ! -e target/$finalName.war ] ;then
             fatal "Not a valid hsf application."
             exit -1
-        }
+        fi
 
-        [ ! -e target/deploy ] && mkdir target/deploy;
-        [ ! -e target/deploy/$finalName.war ] && cp target/$finalName.war target/deploy/$finalName.war;
+        if [ ! -e "target/deploy" ] ;then
+            mkdir target/deploy
+        fi
+
+        if [ ! -e "target/deploy/$finalName.war" ] ;then
+            cp target/$finalName.war target/deploy/$finalName.war
+        fi
 
         #/d/source/directory
         local_wd=$PWD/target/deploy;
