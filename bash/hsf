@@ -250,7 +250,7 @@ case $cmd in
             exit -1
         fi
 
-        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[green\].*$"|grep -v "^.*\s.*$"`
+        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s+.*$"`
 
         if [ $? -ne 0 ] ;then
             fatal "Cannot retrieve the final name for this artifact."
