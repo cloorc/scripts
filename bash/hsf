@@ -85,10 +85,11 @@ function stop() {
 function preview() {
     options=${options# }
     jvmoptions=${jvmoptions# }
-    green "You are going to execute : "
-      red "   action : $cmd"
-      red "  options : $options"
-      red "      jvm : $jvmoptions"
+    green "################################################################################"
+      red "   action : ${cmd}"
+      red "  options : ${options}"
+      red "      jvm : ${jvmoptions}"
+    green "################################################################################"
 }
 
 function upgrade() {
