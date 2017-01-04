@@ -25,6 +25,7 @@ function usage() {
     green "  --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
     green "  --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
     green "  --war=<path-to-war>                   #full path to war package"
+    green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
@@ -167,6 +168,10 @@ for c in $* ;do
         --war=*)
             v=${c#*=}
             opt_war=${v}
+            ;;
+        --pub=*)
+            v=${c#*=}
+            docker_opts+=" -v $v"
             ;;
         --verbose)
             opt_verbose=true
