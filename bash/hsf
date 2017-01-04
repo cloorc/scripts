@@ -49,6 +49,8 @@ function usage() {
     green "  [root@app1 ~]# $command_name run --reg=10.80.1.23 -e local_db_host=10.80.1.23"
       red "  # stop docker container for current maven module"
     green "  [root@app1 ~]# $command_name stop"
+      red "Host:"
+    green "  $const_ip"
 }
 
 function red() {
@@ -168,7 +170,7 @@ for c in $* ;do
         --verbose)
             opt_verbose=true
             ;;
-        config|logs|stop|ps|exec|run)
+        config|logs|stop|ps|exec|run|test)
             cmd=$c
             ;;
         debug)
