@@ -6,7 +6,7 @@ command_name=${command_name##*/}
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
-const_ip=`java -jar $jar_ip|grep "sitelocal,ipv4"|awk -F, '{print $3}'`
+const_ip=`java -jar $jar_ip|grep "normal,sitelocal,ipv4"|awk -F, '{print $4}'`
 
 function usage() {
       red "Usage:"
