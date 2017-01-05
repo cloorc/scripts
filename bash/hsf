@@ -12,10 +12,12 @@ container=edas-${PWD##*/};
 
 function usage() {
       red "Usage:"
-    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade}"
-      red "docker_opts:"
+    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
+      red "Options:"
     green "  --verbose                             #show verbose information"
-      red "  config: add additional docker_opts for edas-config-center"
+    green "  --help                                #show this information"
+    green "  -h                                    #same as --help"
+      red "  config: add additional option for edas-config-center"
     green "  --reset                               #remove container and restart it"
     green "  --reg=<registry-ip-address>           #custom registry ip address"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
@@ -28,11 +30,11 @@ function usage() {
     green "  --war=<path-to-war>                   #full path to war package"
     green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
     green "  --web[=<http-web-port>]               #specify http web port, random by default"
-    green "  --jvm=<java options>                  #show verbose information"
+    green "  --jvm=<java-options>                  #additional options to jvm"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
-      red "  logs: display logging greenrmation for current container"
+      red "  logs: display logging information for current container"
     green "  <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
       red "  exec: execute command in current container in interactive mode"
     green "  <arguments>                           #additional arguments for \`docker exec\`"
@@ -40,7 +42,7 @@ function usage() {
     green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
     green "  Docker container named by current folder name with prefix of \`edas-\`"
       red "Installation:"
-    green "  1. Install docker for your operating system : http://down.tesir.top/InstallDocker.msi"
+    green "  1. Install docker for windows : http://down.tesir.top/InstallDocker.msi"
     green "  2. Get the script from : https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
     green "  3. Put the script \`hsf\` into \`PATH\` and \`chmod +x hsf\`"
     green "  4. Start a new terminal and type \`hsf\` to show usage"
@@ -54,7 +56,7 @@ function usage() {
     green "  [root@app1 ~]# $command_name stop"
       red "  # run docker container for specific war package with external public resources"
     green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
-      red "Host:"
+      red "Your ip address :"
     green "  $const_ip"
 }
 
@@ -207,6 +209,10 @@ for c in $* ;do
             upgrade "$jar_port"
             upgrade "${BASH_SOURCE}"
             exit $?
+            ;;
+        -h|--help|help)
+            usage
+            exit 0
             ;;
         *)
             docker_opts+=" ${c// /\\ }"
