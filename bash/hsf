@@ -259,7 +259,7 @@ case ${cmd} in
         docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
         stop ${container}
 
-        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s+.*$"`
+        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s\+.*$"`
         if [ $? -ne 0 ] ;then
             fatal "Cannot retrieve the final name for this artifact."
             exit -1
