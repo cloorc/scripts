@@ -7,6 +7,7 @@ jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
 const_ip=`java -jar ${jar_ip}`
+const_default="default"
 container=edas-${PWD##*/};
 
 function usage() {
@@ -154,11 +155,10 @@ for c in $* ;do
             ;;
         --web|--web=*)
             if [ "${c}" == "--web" ] ;then
-                opt_web_port=`java -jar ${jar_port} ${container}-web`
+                opt_web_port="${const_default}"
             else
                 opt_web_port=${c#*=}
             fi
-            docker_opts+=" -p $opt_web_port:8080"
             ;;
         --cfg=*)
             opt_config=${c#*=}
@@ -301,6 +301,15 @@ case ${cmd} in
         fi
 
         initial
+
+        if [ "${opt_web_port}" == "${const_default}" ] ;then
+            opt_web_port=`java -jar ${jar_port} ${container}-httpport`
+        fi
+        if [ -n "${opt_web_port}" ] ;then
+            docker_opts+=" -p $opt_web_port:8080"
+            java_opts+=" -Dserver.address=0.0.0.0"
+        fi
+
         green "Mounting ${local_wd//\\/\\\\} ...";
         image=
         case ${cmd} in
