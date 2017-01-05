@@ -28,6 +28,7 @@ function usage() {
     green "  --war=<path-to-war>                   #full path to war package"
     green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
     green "  --web[=<http-web-port>]               #specify http web port, random by default"
+    green "  --jvm=<java options>                  #show verbose information"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
@@ -183,6 +184,9 @@ for c in $* ;do
         --pub=*)
             v=${c#*=}
             docker_opts+=" -v $v"
+            ;;
+        --jvm=*)
+            java_opts+=" ${c#*=}"
             ;;
         --verbose)
             opt_verbose=true
