@@ -274,7 +274,7 @@ case ${cmd} in
         fi
 
         const_war="${opt_war:-target/$finalName.war}"
-        const_target_war="target/deploy/${const_war##*/}"
+        const_target_war="target/deploy/ROOT.war"
         verbose "Package '${const_war}' will be mounted ..."
 
         if [ ! -e "$const_war" ] ;then
