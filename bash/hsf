@@ -7,6 +7,7 @@ jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
 const_ip=`java -jar ${jar_ip}`
+container=edas-${PWD##*/};
 
 function usage() {
       red "Usage:"
@@ -18,14 +19,14 @@ function usage() {
     green "  --reg=<registry-ip-address>           #custom registry ip address"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug|run: start container for current module"
-    green "  --reg                                 #use ''192.168.103.108'' as edas configuration server address"
-    green "  --reg=<registry-ip-address>           #edas configuration server address"
+    green "  --reg[=<registry-ip-address>]         #edas configuration server address, default '192.168.103.108''"
     green "  --cfg=<spring-cloud-config-server>    #spring cloud config server address"
     green "  --hsf-port=<hsf.server.port>          #port for hsf server"
     green "  --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
     green "  --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
     green "  --war=<path-to-war>                   #full path to war package"
     green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
+    green "  --web[=<http-web-port>]               #specify http web port, random by default"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
@@ -151,6 +152,14 @@ for c in $* ;do
                 opt_registry=${c#*=}
             fi
             ;;
+        --web|--web=*)
+            if [ "${c}" == "--web" ] ;then
+                opt_web_port=`java -jar ${jar_port} ${container}-web`
+            else
+                opt_web_port=${c#*=}
+            fi
+            docker_opts+=" -p $opt_web_port:8080"
+            ;;
         --cfg=*)
             opt_config=${c#*=}
             ;;
@@ -201,7 +210,6 @@ for c in $* ;do
     esac
 done
 
-container=edas-${PWD##*/};
 
 if [ -z "$opt_hsf_host" ] ;then
     opt_hsf_host=${const_ip}
