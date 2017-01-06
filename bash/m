@@ -80,10 +80,14 @@ for c in $* ;do
             red "'m' has not been installed, please install it without any arguments!"
             exit 0
             ;;
+        -h|--help|help)
+            usage
+            exit 0
+            ;;
         -*)
             opt_options+=" ${c}"
             ;;
-        --help|help|*)
+        *)
             # error
             usage
             exit -1
@@ -115,5 +119,12 @@ if [ $# -eq 0 ] ;then
         usage
     fi
 else
-    mvn ${opt_goals# } ${opt_options}
+    which mvn>/dev/null 2>&1
+    if [ $? -eq 0 ] ;then
+        v_cmd="mvn ${opt_goals# } ${opt_options}"
+        green "${v_cmd}"
+        ${v_cmd}
+    else
+        red "'mvn' has not been found in PATH, please make sure maven has been installed already."
+    fi
 fi
