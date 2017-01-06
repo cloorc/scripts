@@ -4,6 +4,7 @@ const_source_dir=${BASH_SOURCE%/*}
 const_command=${BASH_SOURCE##*/}
 
 opt_goals=
+opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
 
 function red() {
     echo -e "\033[31m$*\033[0m"
@@ -81,5 +82,5 @@ if [ $# -eq 0 ] ;then
         fi
     fi
 else
-    mvn ${opt_goals# }
+    mvn ${opt_goals# } ${opt_options}
 fi
