@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.0"
+const_version="1.0.1"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -25,7 +25,7 @@ function green() {
 }
 
 function usage() {
-      red "usage: ${const_command} {c|va|co|t|p|v|i|s|d|-*|--help|help|upgrade}"
+      red "Usage: ${const_command} {c|va|co|t|p|v|i|s|d|help|upgrade}"
     green "  c            : clean"
     green "  va           : validate"
     green "  co           : compile"
@@ -35,11 +35,12 @@ function usage() {
     green "  i            : install"
     green "  s            : site"
     green "  d            : deploy"
+    green "  help         : same as --help"
+    green "  upgrade      : upgrade to latest release"
+      red "Supported options:"
     green "  --help       : show help"
     green "  -v|--version : show version information"
     green "  -*           : additional options"
-    green "  help         : same as --help"
-    green "  upgrade      : upgrade to latest release"
 }
 
 for c in $* ;do
@@ -86,7 +87,7 @@ for c in $* ;do
                 if [ $? -eq 0 ] ;then
                     chmod +x "${const_m}"
                 fi
-                green "Congratulations, 'm' has been upgrade to latest version!"
+                green "Congratulations, 'm' has been upgrade to latest version ${const_version}!"
                 exit $?
             fi
             red "'m' has not been installed, please install it without any arguments!"
