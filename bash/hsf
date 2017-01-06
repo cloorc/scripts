@@ -20,7 +20,7 @@ container=edas-${PWD##*/}
 
 function usage() {
       red "Usage:"
-    green "  $command_name {setup|config|debug|run|stop|logs|ps|exec|upgrade|help}"
+    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
       red "Options:"
     green "  --verbose                             #show verbose information"
     green "  --help                                #show this information"
@@ -257,24 +257,6 @@ function initial() {
 }
 
 case ${cmd} in
-    setup)
-        which msiexec>/dev/null 2>&1
-        if [ $? -eq 0 ] ;then
-            pushd ${TEMP}
-            if [ ! -e "docker.msi" ] ;then
-                curl -skSL ${const_url_docker} -o docker.msi
-            fi
-            msiexec /i "docker.msi" /quiet /promptrestart /l* "docker-installation.txt"
-            if [ $? -eq 0 ] ;then
-                rm -vf docker.msi
-                rm -vf docker-installation.txt
-                green "Installation has been done, you should restart your computer and share drivers for docker manually."
-            else
-                red "Installation failed, please send file '${PWD}/docker-instalation.txt' to '${const_author_mail}'"
-            fi
-            popd
-        fi
-        ;;
     stop)
         preview
         stop ${container}
