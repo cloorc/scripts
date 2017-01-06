@@ -13,7 +13,7 @@ const_url_ip="https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip
 const_url_port="https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar"
 const_url_docker="http://down.tesir.top/InstallDocker.msi"
 
-const_author_name="张仪"
+const_author_name="Zhang Yi"
 const_author_mail="zhangh@dtdream.com"
 
 container=edas-${PWD##*/}
@@ -66,7 +66,7 @@ function usage() {
       red "  # run docker container for specific war package with external public resources"
     green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
       red "Hi ${USER:-${USERPROFILE##*\\}}@${const_ip}, "
-    green "  this is ${const_author_name}, welcome to send any feedback to <${const_author_mail}>."
+    green "  I am ${const_author_name}, welcome to send any feedback to <${const_author_mail}>!"
 }
 
 function red() {
