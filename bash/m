@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-const_source_dir=${BASH_SOURCE%/*}
-const_command=${BASH_SOURCE##*/}
+const_m=${BASH_SOURCE}
+const_source_dir=${const_m%/*}
+const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
 
@@ -72,8 +73,8 @@ for c in $* ;do
             opt_goals+=" deploy"
             ;;
         upgrade)
-            if [ -e "${BASH_SOURCE}" ] ;then
-                curl -skSL "${const_url_m}" -o "${BASH_SOURCE}"
+            if [ -e "${const_m}" ] ;then
+                curl -skSL "${const_url_m}" -o "${const_m}"
                 exit $?
             fi
             red "'m' has not been installed, please install it without any arguments!"
@@ -91,24 +92,28 @@ for c in $* ;do
 done
 
 if [ $# -eq 0 ] ;then
-    for d in ${PATH//:/ } ;do
-        v_dir="$d"
-        v_m="${v_dir}/m"
-        if [ -e ${v_dir} ] ;then
-            if [ ! -e ${v_m} ] ;then
-                curl -skSL "${const_url_m}" -o "${v_m}"
-                if [ $? -ne 0 ] ;then
-                    continue
+    if [ ! -e "${const_m}" ] ;then
+        for d in ${PATH//:/ } ;do
+            v_dir="$d"
+            v_m="${v_dir}/m"
+            if [ -e ${v_dir} ] ;then
+                if [ ! -e ${v_m} ] ;then
+                    curl -skSL "${const_url_m}" -o "${v_m}"
+                    if [ $? -ne 0 ] ;then
+                        continue
+                    fi
+                    chmod +x ${v_m}
+                    if [ $? -ne 0 ] ;then
+                        continue
+                    fi
+                    green "Congratulations, 'm' has been installed into ${v_dir}, enjoy yourself!"
+                    break
                 fi
-                chmod +x ${v_m}
-                if [ $? -ne 0 ] ;then
-                    continue
-                fi
-                green "Congratulations, 'm' has been installed into ${v_dir}, enjoy yourself!"
-                break
             fi
-        fi
-    done
+        done
+    else
+        usage
+    fi
 else
     mvn ${opt_goals# } ${opt_options}
 fi
