@@ -264,13 +264,13 @@ case ${cmd} in
             if [ ! -e "docker.msi" ] ;then
                 curl -skSL ${const_url_docker} -o docker.msi
             fi
-            msiexec /jm docker.msi /quiet /promptrestart /l* docker-installation.txt
+            msiexec /i "docker.msi" /quiet /promptrestart /l* "docker-installation.txt"
             if [ $? -eq 0 ] ;then
                 rm -vf docker.msi
                 rm -vf docker-installation.txt
                 green "Installation has been done, you should restart your computer and share drivers for docker manually."
             else
-                red "Installation failed, please send file '${PWD}/docker-instalation.txt' to '${const_mail_author}'"
+                red "Installation failed, please send file '${PWD}/docker-instalation.txt' to '${const_author_mail}'"
             fi
             popd
         fi
@@ -307,10 +307,12 @@ case ${cmd} in
         docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
         stop ${container}
 
-        finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s\+.*$"`
-        if [ $? -ne 0 ] ;then
-            fatal "Cannot retrieve the final name for this artifact."
-            exit -1
+        if [ -z "${opt_war}" ] ;then
+            finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s\+.*$"`
+            if [ $? -ne 0 ] ;then
+                fatal "Cannot retrieve the final name for this artifact."
+                exit -1
+            fi
         fi
 
         const_war="${opt_war:-target/$finalName.war}"
