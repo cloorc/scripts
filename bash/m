@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.2"
+const_version="1.0.3"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -47,6 +47,7 @@ function usage() {
 function release() {
       red "2017-01-06"
     green "  1.Support additional goals, such as 'help:evaluate'"
+    green "  2.Add release log support"
 }
 
 for c in $* ;do
