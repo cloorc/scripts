@@ -18,7 +18,7 @@ function green() {
 }
 
 function usage() {
-      red "usage: ${const_command} {c|va|co|t|p|v|i|s|d}"
+      red "usage: ${const_command} {c|va|co|t|p|v|i|s|d|-*|--help|help|upgrade}"
     green "  c           : clean"
     green "  va          : validate"
     green "  co          : compile"
