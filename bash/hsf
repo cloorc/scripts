@@ -261,7 +261,9 @@ case ${cmd} in
         which msiexec>/dev/null 2>&1
         if [ $? -eq 0 ] ;then
             pushd ${TEMP}
-            curl -skSL ${const_url_docker} -o docker.msi
+            if [ ! -e "docker.msi" ] ;then
+                curl -skSL ${const_url_docker} -o docker.msi
+            fi
             msiexec /jm docker.msi /quiet /promptrestart /l* docker-installation.txt
             if [ $? -eq 0 ] ;then
                 rm -vf docker.msi
