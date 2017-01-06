@@ -11,6 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
+const_version="1.0.0"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -25,19 +26,20 @@ function green() {
 
 function usage() {
       red "usage: ${const_command} {c|va|co|t|p|v|i|s|d|-*|--help|help|upgrade}"
-    green "  c           : clean"
-    green "  va          : validate"
-    green "  co          : compile"
-    green "  t           : test"
-    green "  p           : package"
-    green "  v           : verify"
-    green "  i           : install"
-    green "  s           : site"
-    green "  d           : deploy"
-    green "  -*          : additional options"
-    green "  --help      : show help"
-    green "  help        : same as --help"
-    green "  upgrade     : upgrade to latest release"
+    green "  c            : clean"
+    green "  va           : validate"
+    green "  co           : compile"
+    green "  t            : test"
+    green "  p            : package"
+    green "  v            : verify"
+    green "  i            : install"
+    green "  s            : site"
+    green "  d            : deploy"
+    green "  --help       : show help"
+    green "  -v|--version : show version information"
+    green "  -*           : additional options"
+    green "  help         : same as --help"
+    green "  upgrade      : upgrade to latest release"
 }
 
 for c in $* ;do
@@ -81,6 +83,10 @@ for c in $* ;do
         upgrade)
             if [ -n "${const_m}" -a -e "${const_m}" ] ;then
                 curl -skSL "${const_url_m}" -o "${const_m}"
+                if [ $? -eq 0 ] ;then
+                    chmod +x "${const_m}"
+                fi
+                green "Congratulations, 'm' has been upgrade to latest version!"
                 exit $?
             fi
             red "'m' has not been installed, please install it without any arguments!"
@@ -88,6 +94,10 @@ for c in $* ;do
             ;;
         -h|--help|help)
             usage
+            exit 0
+            ;;
+        -v|--version)
+            red "${const_version}"
             exit 0
             ;;
         -*)
