@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.1"
+const_version="1.0.2"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -41,6 +41,12 @@ function usage() {
     green "  --help       : show help"
     green "  -v|--version : show version information"
     green "  -*           : additional options"
+    green "  *            : additional goals"
+}
+
+function release() {
+      red "2017-01-06"
+    green "  1.Support additional goals, such as 'help:evaluate'"
 }
 
 for c in $* ;do
@@ -88,9 +94,14 @@ for c in $* ;do
                     chmod +x "${const_m}"
                 fi
                 green "Congratulations, 'm' has been upgrade to latest version ${const_version}!"
+                ${const_m} release
                 exit $?
             fi
             red "'m' has not been installed, please install it without any arguments!"
+            exit 0
+            ;;
+        release)
+            release
             exit 0
             ;;
         -h|--help|help)
@@ -105,9 +116,8 @@ for c in $* ;do
             opt_options+=" ${c}"
             ;;
         *)
-            # error
-            usage
-            exit -1
+            # treat as additional goals
+            opt_goals+=" ${c}"
             ;;
     esac
 done
