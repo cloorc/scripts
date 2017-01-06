@@ -31,6 +31,7 @@ function usage() {
     green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
     green "  --web[=<http-web-port>]               #specify http web port, random by default"
     green "  --jvm=<java-options>                  #additional options to jvm"
+    green "  -D*|-X*                               #whole option will be treated as java option as \`--jvm\`"
     green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
       red "  debug: start container with java debugger enabled for current module"
     green "  --dbg=<debug-port>                    #java remote debugger port"
@@ -56,7 +57,7 @@ function usage() {
     green "  [root@app1 ~]# $command_name stop"
       red "  # run docker container for specific war package with external public resources"
     green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
-      red "Your ip address :"
+      red "Hi ${USER:-${USERPROFILE##*\\}}, you are in $PWD, your ip address :"
     green "  $const_ip"
 }
 
@@ -186,6 +187,9 @@ for c in $* ;do
         --pub=*)
             v=${c#*=}
             docker_opts+=" -v $v"
+            ;;
+        -D*|-X*)
+            java_opts+=" ${c}"
             ;;
         --jvm=*)
             java_opts+=" ${c#*=}"
