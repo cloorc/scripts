@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+const_source_dir=${BASH_SOURCE%/*}
+const_command=${BASH_SOURCE##*/}
+
+opt_goals=
+
+function red() {
+    echo -e "\033[31m$*\033[0m"
+}
+
+function green() {
+    echo -e "\033[32m$*\033[0m"
+}
+
+function usage() {
+    red "usage: ${const_command} {c|va|co|t|p|v|i|s|d}"
+}
+
+for c in $* ;do
+    case ${c} in
+        c)
+            # clean
+            opt_goals+=" clean"
+            ;;
+        va)
+            # validate
+            opt_goals+=" validate"
+            ;;
+        co)
+            # compile
+            opt_goals+=" compile"
+            ;;
+        t)
+            # test
+            opt_goals+=" test"
+            ;;
+        p)
+            # package
+            opt_goals+=" package"
+            ;;
+        v)
+            # verify
+            opt_goals+=" verify"
+            ;;
+        i)
+            # install
+            opt_goals+=" install"
+            ;;
+        s)
+            # site
+            opt_goals+=" site"
+            ;;
+        d)
+            # deploy
+            opt_goals+=" deploy"
+            ;;
+        *)
+            # error
+            usage
+            exit -1
+            ;;
+    esac
+done
+
+if [ $# -eq 0 ] ;then
+    v_dir="/usr/local/bin"
+    v_m="${v_dir}/m"
+    if [ ! -e ${v_dir} ] ;then
+        mkdir -p /usr/local/bin
+    fi
+    if [ ! -e ${v_m} ] ;then
+        curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/m -o "${v_m}"
+        chmod +x ${v_m}
+    fi
+    if [ -n "${WINDIR}" ] ;then
+        v_bat="/${WINDIR//\\\\//}/m.bat"
+        v_bat="${v_bat//:/}"
+        if [ ! -e "${v_bat}" ] ;then
+            curl -skSL https://git.oschina.net/soiff/scripts/raw/master/batch/m.bat -o "${v_bat}"
+        fi
+    fi
+else
+    mvn ${opt_goals# }
+fi
