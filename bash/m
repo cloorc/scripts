@@ -96,17 +96,17 @@ for c in $* ;do
 done
 
 if [ $# -eq 0 ] ;then
-    if [ ! -e "${const_m}" ] ;then
+    if [ -z "${const_m}" -o ! -e "${const_m}" ] ;then
         for d in ${PATH//:/ } ;do
             v_dir="$d"
             v_m="${v_dir}/m"
             if [ -e ${v_dir} ] ;then
                 if [ ! -e ${v_m} ] ;then
-                    curl -skSL "${const_url_m}" -o "${v_m}"
+                    curl -skSL "${const_url_m}" -o "${v_m}">/dev/null 2>&1
                     if [ $? -ne 0 ] ;then
                         continue
                     fi
-                    chmod +x ${v_m}
+                    chmod +x ${v_m}>/dev/null 2>&1
                     if [ $? -ne 0 ] ;then
                         continue
                     fi
