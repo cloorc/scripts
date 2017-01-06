@@ -3,6 +3,8 @@
 const_source_dir=${BASH_SOURCE%/*}
 const_command=${BASH_SOURCE##*/}
 
+const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
+
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
 
@@ -15,7 +17,20 @@ function green() {
 }
 
 function usage() {
-    red "usage: ${const_command} {c|va|co|t|p|v|i|s|d}"
+      red "usage: ${const_command} {c|va|co|t|p|v|i|s|d}"
+    green "  c           : clean"
+    green "  va          : validate"
+    green "  co          : compile"
+    green "  t           : test"
+    green "  p           : package"
+    green "  v           : verify"
+    green "  i           : install"
+    green "  s           : site"
+    green "  d           : deploy"
+    green "  -*          : additional options"
+    green "  --help      : show help"
+    green "  help        : same as --help"
+    green "  upgrade     : upgrade to latest release"
 }
 
 for c in $* ;do
@@ -56,10 +71,18 @@ for c in $* ;do
             # deploy
             opt_goals+=" deploy"
             ;;
+        upgrade)
+            if [ -e "${BASH_SOURCE}" ] ;then
+                curl -skSL "${const_url_m}" -o "${BASH_SOURCE}"
+                exit $?
+            fi
+            red "'m' has not been installed, please install it without any arguments!"
+            exit 0
+            ;;
         -*)
             opt_options+=" ${c}"
             ;;
-        *)
+        --help|help|*)
             # error
             usage
             exit -1
@@ -68,22 +91,24 @@ for c in $* ;do
 done
 
 if [ $# -eq 0 ] ;then
-    v_dir="/usr/local/bin"
-    v_m="${v_dir}/m"
-    if [ ! -e ${v_dir} ] ;then
-        mkdir -p /usr/local/bin
-    fi
-    if [ ! -e ${v_m} ] ;then
-        curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/m -o "${v_m}"
-        chmod +x ${v_m}
-    fi
-    if [ -n "${WINDIR}" ] ;then
-        v_bat="/${WINDIR//\\\\//}/m.bat"
-        v_bat="${v_bat//:/}"
-        if [ ! -e "${v_bat}" ] ;then
-            curl -skSL https://git.oschina.net/soiff/scripts/raw/master/batch/m.bat -o "${v_bat}"
+    for d in ${PATH//:/ } ;do
+        v_dir="$d"
+        v_m="${v_dir}/m"
+        if [ -e ${v_dir} ] ;then
+            if [ ! -e ${v_m} ] ;then
+                curl -skSL "${const_url_m}" -o "${v_m}"
+                if [ $? -ne 0 ] ;then
+                    continue
+                fi
+                chmod +x ${v_m}
+                if [ $? -ne 0 ] ;then
+                    continue
+                fi
+                green "Congratulations, 'm' has been installed into ${v_dir}, enjoy yourself!"
+                break
+            fi
         fi
-    fi
+    done
 else
     mvn ${opt_goals# } ${opt_options}
 fi
