@@ -79,7 +79,7 @@ for c in $* ;do
             opt_goals+=" deploy"
             ;;
         upgrade)
-            if [ -e "${const_m}" ] ;then
+            if [ -n "${const_m}" -a -e "${const_m}" ] ;then
                 curl -skSL "${const_url_m}" -o "${const_m}"
                 exit $?
             fi
