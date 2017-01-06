@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
 const_m=${BASH_SOURCE}
+
+if [ "${const_m:0:8}" == "/dev/fd/" ] ;then
+    # from pipe
+    const_m=
+fi
+
 const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
