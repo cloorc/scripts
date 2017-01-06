@@ -8,11 +8,19 @@ jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
 const_ip=`java -jar ${jar_ip}`
 const_default="default"
-container=edas-${PWD##*/};
+const_url_hsf="https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
+const_url_ip="https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar"
+const_url_port="https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar"
+const_url_docker="http://down.tesir.top/InstallDocker.msi"
+
+const_author_name="张仪"
+const_author_mail="zhangh@dtdream.com"
+
+container=edas-${PWD##*/}
 
 function usage() {
       red "Usage:"
-    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
+    green "  $command_name {setup|config|debug|run|stop|logs|ps|exec|upgrade|help}"
       red "Options:"
     green "  --verbose                             #show verbose information"
     green "  --help                                #show this information"
@@ -43,8 +51,8 @@ function usage() {
     green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
     green "  Docker container named by current folder name with prefix of \`edas-\`"
       red "Installation:"
-    green "  1. Install docker for windows : http://down.tesir.top/InstallDocker.msi"
-    green "  2. Get the script from : https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
+    green "  1. Install docker for windows : ${const_url_docker}"
+    green "  2. Get the script from : ${const_url_hsf}"
     green "  3. Put the script \`hsf\` into \`PATH\` and \`chmod +x hsf\`"
     green "  4. Start a new terminal and type \`hsf\` to show usage"
       red "Examples:"
@@ -57,8 +65,8 @@ function usage() {
     green "  [root@app1 ~]# $command_name stop"
       red "  # run docker container for specific war package with external public resources"
     green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
-      red "Hi ${USER:-${USERPROFILE##*\\}}, you are in $PWD, your ip address :"
-    green "  $const_ip"
+      red "Hi ${USER:-${USERPROFILE##*\\}}@${const_ip}, "
+    green "  this is ${const_author_name}, welcome to send any feedback to <${const_author_mail}>."
 }
 
 function red() {
@@ -107,15 +115,15 @@ function upgrade() {
     for e in $* ;do
         case ${e} in
             ${jar_ip})
-                curl -skSL https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar -o ${e}
+                curl -skSL ${const_url_ip} -o ${e}
                 return $?
                 ;;
             ${jar_port})
-                curl -skSL https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar -o ${e}
+                curl -skSL ${const_url_port} -o ${e}
                 return $?
                 ;;
             $BASH_SOURCE)
-                curl -skSL https://git.oschina.net/soiff/scripts/raw/master/bash/hsf -o ${e} && chmod +x ${e}
+                curl -skSL ${const_url_hsf} -o ${e} && chmod +x ${e}
                 return $?
                 ;;
         esac
@@ -197,7 +205,7 @@ for c in $* ;do
         --verbose)
             opt_verbose=true
             ;;
-        config|logs|stop|ps|exec|run|test)
+        setup|config|logs|stop|ps|exec|run|test)
             cmd=${c}
             ;;
         debug)
@@ -249,6 +257,22 @@ function initial() {
 }
 
 case ${cmd} in
+    setup)
+        which msiexec>/dev/null 2>&1
+        if [ $? -eq 0 ] ;then
+            pushd ${TEMP}
+            curl -skSL ${const_url_docker} -o docker.msi
+            msiexec /jm docker.msi /quiet /promptrestart /l* docker-installation.txt
+            if [ $? -eq 0 ] ;then
+                rm -vf docker.msi
+                rm -vf docker-installation.txt
+                green "Installation has been done, you should restart your computer and share drivers for docker manually."
+            else
+                red "Installation failed, please send file '${PWD}/docker-instalation.txt' to '${const_mail_author}'"
+            fi
+            popd
+        fi
+        ;;
     stop)
         preview
         stop ${container}
