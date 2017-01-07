@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.4"
+const_version="1.0.5"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -25,7 +25,8 @@ function green() {
 }
 
 function usage() {
-      red "Usage: ${const_command} {c|va|co|t|p|v|i|s|d|help|upgrade}"
+      red "Usage: ${const_command} {cvacotpvisd|help|upgrade|<options>}"
+      red "Options can be linked to one word:"
     green "  c            : clean"
     green "  va           : validate"
     green "  co           : compile"
@@ -35,6 +36,7 @@ function usage() {
     green "  i            : install"
     green "  s            : site"
     green "  d            : deploy"
+      red "Options should be specified independently:"
     green "  help         : same as --help"
     green "  upgrade      : upgrade to latest release"
       red "Supported options:"
@@ -46,66 +48,89 @@ function usage() {
 
 function release() {
       red "v${const_version}"
+    green "  1. Support aggregation for goals;"
+      red "v1.0.4"
     green "  1. Update upgrade management;"
       red "v1.0.3"
     green "  1. Support additional goals, such as 'help:evaluate';"
     green "  2. Add release log support;"
 }
 
+function upgrade() {
+    if [ -n "${const_m}" -a -e "${const_m}" ] ;then
+        curl -skSL "${const_url_m}" -o "${const_m}"
+        if [ $? -eq 0 ] ;then
+            chmod +x "${const_m}"
+        fi
+        green "Congratulations, 'm' has been upgraded to latest version ${const_version}!"
+        ${const_m} release
+        return $?
+    fi
+    red "'m' has not been installed, please install it by \`bash <(curl -skSL ${const_url_m})\`!"
+    return 0
+}
+
+function trim() {
+    echo $*
+}
+
+function parsing() {
+    case $1 in
+        va*)
+            opt_goals+=" validate"
+            parsing "${1#va}"
+            ;;
+        v*)
+            opt_goals+=" verify"
+            parsing "${1#v}"
+            ;;
+        co*)
+            opt_goals+=" compile"
+            parsing "${1#co}"
+            ;;
+        c*)
+            opt_goals+=" clean"
+            parsing "${1#c}"
+            ;;
+        t*)
+            opt_goals+=" test"
+            parsing "${1#t}"
+            ;;
+        p*)
+            opt_goals+=" package"
+            parsing "${1#p}"
+            ;;
+        i*)
+            opt_goals+=" install"
+            parsing "${1#i}"
+            ;;
+        s*)
+            opt_goals+=" site"
+            parsing "${1#s}"
+            ;;
+        d*)
+            opt_goals+=" deploy"
+            parsing "${1#d}"
+            ;;
+        *)
+            # treat as additional goals
+            opt_goals+=" ${1}"
+            ;;
+    esac
+}
+
 for c in $* ;do
     case ${c} in
-        c)
-            # clean
-            opt_goals+=" clean"
-            ;;
-        va)
-            # validate
-            opt_goals+=" validate"
-            ;;
-        co)
-            # compile
-            opt_goals+=" compile"
-            ;;
-        t)
-            # test
-            opt_goals+=" test"
-            ;;
-        p)
-            # package
-            opt_goals+=" package"
-            ;;
-        v)
-            # verify
-            opt_goals+=" verify"
-            ;;
-        i)
-            # install
-            opt_goals+=" install"
-            ;;
-        s)
-            # site
-            opt_goals+=" site"
-            ;;
-        d)
-            # deploy
-            opt_goals+=" deploy"
-            ;;
         upgrade)
-            if [ -n "${const_m}" -a -e "${const_m}" ] ;then
-                curl -skSL "${const_url_m}" -o "${const_m}"
-                if [ $? -eq 0 ] ;then
-                    chmod +x "${const_m}"
-                fi
-                green "Congratulations, 'm' has been upgraded to latest version ${const_version}!"
-                ${const_m} release
-                exit $?
-            fi
-            red "'m' has not been installed, please install it by \`bash <(curl -skSL ${const_url_m})\`!"
-            exit 0
+            upgrade
+            exit $?
             ;;
         release)
             release
             exit 0
+            ;;
+        c*|v*|t*|p*|i*|s*|d*)
+            parsing "${c}"
             ;;
         -h|--help|help)
             usage
@@ -151,7 +176,7 @@ if [ $# -eq 0 ] ;then
 else
     which mvn>/dev/null 2>&1
     if [ $? -eq 0 ] ;then
-        v_cmd="mvn ${opt_goals# } ${opt_options}"
+        v_cmd="mvn $(trim ${opt_goals}) $(trim ${opt_options})"
         green "${v_cmd}"
         ${v_cmd}
     else
