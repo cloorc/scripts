@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.5"
+const_version="1.0.6"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -48,12 +48,9 @@ function usage() {
 
 function release() {
       red "v${const_version}"
+    green "  1. Support -pl --projects options;"
+      red "v1.0.5"
     green "  1. Support aggregation for goals;"
-      red "v1.0.4"
-    green "  1. Update upgrade management;"
-      red "v1.0.3"
-    green "  1. Support additional goals, such as 'help:evaluate';"
-    green "  2. Add release log support;"
 }
 
 function upgrade() {
@@ -119,7 +116,10 @@ function parsing() {
     esac
 }
 
-for c in $* ;do
+const_args=($*)
+const_args_count=${#const_args[@]}
+for ((i = 0; i < $const_args_count; ++i)) ;do
+    c=${const_args[i]}
     case ${c} in
         upgrade)
             upgrade
@@ -128,6 +128,12 @@ for c in $* ;do
         release)
             release
             exit 0
+            ;;
+        -pl|--projects)
+            let i+=1
+            if [ ${i} -lt ${const_args_count} ] ;then
+                opt_options+=" ${c} ${const_args[${i}]}"
+            fi
             ;;
         c*|v*|t*|p*|i*|s*|d*)
             parsing "${c}"
