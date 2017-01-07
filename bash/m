@@ -48,8 +48,9 @@ function usage() {
 
 function release() {
       red "v${const_version}"
-      red "v1.0.6"
     green "  1. Support -rf|--resume-from|-P|--active-profiles options;"
+      red "v1.0.6"
+    green "  1. Support -pl|--projects options;"
       red "v1.0.5"
     green "  1. Support aggregation for goals;"
 }
