@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.6"
+const_version="1.0.7"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
