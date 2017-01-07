@@ -11,7 +11,7 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.3"
+const_version="1.0.4"
 
 opt_goals=
 opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
@@ -45,9 +45,11 @@ function usage() {
 }
 
 function release() {
-      red "2017-01-06"
-    green "  1.Support additional goals, such as 'help:evaluate'"
-    green "  2.Add release log support"
+      red "v${const_version}"
+    green "  1. Update upgrade management;"
+      red "v1.0.3"
+    green "  1. Support additional goals, such as 'help:evaluate';"
+    green "  2. Add release log support;"
 }
 
 for c in $* ;do
@@ -94,11 +96,11 @@ for c in $* ;do
                 if [ $? -eq 0 ] ;then
                     chmod +x "${const_m}"
                 fi
-                green "Congratulations, 'm' has been upgrade to latest version ${const_version}!"
+                green "Congratulations, 'm' has been upgraded to latest version ${const_version}!"
                 ${const_m} release
                 exit $?
             fi
-            red "'m' has not been installed, please install it without any arguments!"
+            red "'m' has not been installed, please install it by \`bash <(curl -skSL ${const_url_m})\`!"
             exit 0
             ;;
         release)
