@@ -48,7 +48,8 @@ function usage() {
 
 function release() {
       red "v${const_version}"
-    green "  1. Support -pl --projects options;"
+      red "v1.0.6"
+    green "  1. Support -rf|--resume-from|-P|--active-profiles options;"
       red "v1.0.5"
     green "  1. Support aggregation for goals;"
 }
@@ -129,7 +130,7 @@ for ((i = 0; i < $const_args_count; ++i)) ;do
             release
             exit 0
             ;;
-        -pl|--projects)
+        -pl|--projects|-rf|--resume-from|-P|--active-profiles)
             let i+=1
             if [ ${i} -lt ${const_args_count} ] ;then
                 opt_options+=" ${c} ${const_args[${i}]}"
@@ -138,9 +139,13 @@ for ((i = 0; i < $const_args_count; ++i)) ;do
         c*|v*|t*|p*|i*|s*|d*)
             parsing "${c}"
             ;;
-        -h|--help|help)
+        help)
             usage
             exit 0
+            ;;
+        -h|--help)
+            opt_options="${c}"
+            break
             ;;
         -v|--version)
             red "${const_version}"
