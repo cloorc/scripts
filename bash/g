@@ -185,9 +185,9 @@ for ((i = 0; i < $const_args_count; ++i)) ;do
             ;;
         -m)
             let i+=1
-            if [ ${i} -lt ${const_args_count} ] ;then
-                opt_arguments+=" ${c} ${const_args[${i}]}"
-            fi
+            shift ${i}
+            opt_arguments+=" ${c} \"$*\""
+            break
             ;;
         -*)
             opt_arguments+=" ${c}"
