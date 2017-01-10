@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+
+const_g=${BASH_SOURCE}
+
+if [ "${const_g:0:8}" == "/dev/fd/" ] ;then
+    # from pipe
+    const_g=
+fi
+
+const_source_dir=${const_g%/*}
+const_command=${const_g##*/}
+
+const_url_g="https://git.oschina.net/soiff/scripts/raw/master/bash/g"
+const_version="1.0.0"
+
+opt_options=
+opt_arguments=
+
+function red() {
+    echo -e "\033[31m$*\033[0m"
+}
+
+function green() {
+    echo -e "\033[32m$*\033[0m"
+}
+
+function usage() {
+      red "Usage: ${const_command} {<command>|upgrade|<options>}"
+      red "Options can be linked to one word:"
+    green "  a     add        Add file contents to the index"
+    green "  br    branch     List, create, or delete branches"
+    green "  b     bisect     Use binary search to find the commit that introduced a bug"
+    green "  co    commit     Record changes to the repository"
+    green "  ch    checkout   Switch branches or restore working tree files"
+    green "  c     clone      Clone a repository into a new directory"
+    green "  d     diff       Show changes between commits, commit and working tree, etc"
+    green "  f     fetch      Download objects and refs from another repository"
+    green "  g     grep       Print lines matching a pattern"
+    green "  i     init       Create an empty Git repository or reinitialize an existing one"
+    green "  l     log        Show commit logs"
+    green "  me    merge      Join two or more development histories together"
+    green "  m     mv         Move or rename a file, a directory, or a symlink"
+    green "  pu    push       Update remote refs along with associated objects"
+    green "  p     pull       Fetch from and integrate with another repository or a local branch"
+    green "  rm    rm         Remove files from the working tree and from the index"
+    green "  re    rebase     Reapply commits on top of another base tip"
+    green "  r     reset      Reset current HEAD to the specified state"
+    green "  st    status     Show the working tree status"
+    green "  s     show       Show various types of objects"
+    green "  t     tag        Create, list, delete or verify a tag object signed with GPG"
+      red "Options should be specified independently:"
+    green "  help             same as --help"
+    green "  upgrade          upgrade to latest release"
+      red "Supported options:"
+    green "  --help           show help"
+    green "  -v|--version     show version information"
+    green "  -*               additional options"
+    green "  *                additional goals"
+}
+
+function release() {
+      red "v${const_version}"
+    green "  1. v1.0.0 release;"
+}
+
+function upgrade() {
+    if [ -n "${const_g}" -a -e "${const_g}" ] ;then
+        curl -skSL "${const_url_g}" -o "${const_g}"
+        if [ $? -eq 0 ] ;then
+            chmod +x "${const_g}"
+        fi
+        green "Congratulations, 'g' has been upgraded to latest version ${const_version}!"
+        ${const_g} release
+        return $?
+    fi
+    red "'g' has not been installed, please install it by \`bash <(curl -skSL ${const_url_g})\`!"
+    return 0
+}
+
+function trim() {
+    echo $*
+}
+
+function parsing() {
+    case $1 in
+        a)
+            opt_command="add"
+            ;;
+        br)
+            opt_command="branch"
+            ;;
+        b)
+            opt_command="bisect"
+            ;;
+        co)
+            opt_command="commit"
+            ;;
+        ch)
+            opt_command="checkout"
+            ;;
+        c)
+            opt_command="clone"
+            ;;
+        d)
+            opt_command="diff"
+            ;;
+        f)
+            opt_command="fetch"
+            ;;
+        h)
+            opt_command="help"
+            ;;
+        g)
+            opt_command="grep"
+            ;;
+        i)
+            opt_command="init"
+            ;;
+        l)
+            opt_command="log"
+            ;;
+        me)
+            opt_command="merge"
+            ;;
+        m)
+            opt_command="mv"
+            ;;
+        pu)
+            opt_command="push"
+            ;;
+        p)
+            opt_command="pull"
+            ;;
+        rm)
+            opt_command="rm"
+            ;;
+        re)
+            opt_command="rebase"
+            ;;
+        r)
+            opt_command="reset"
+            ;;
+        st)
+            opt_command="status"
+            ;;
+        s)
+            opt_command="show"
+            ;;
+        t)
+            opt_command="tag"
+            ;;
+        *)
+            # treat as additional goals
+            opt_options+=" ${1}"
+            ;;
+    esac
+}
+
+const_args=($*)
+const_args_count=${#const_args[@]}
+for ((i = 0; i < $const_args_count; ++i)) ;do
+    c=${const_args[i]}
+    case ${c} in
+        upgrade)
+            upgrade
+            exit $?
+            ;;
+        release)
+            release
+            exit 0
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -v|--version)
+            red "${const_version}"
+            exit 0
+            ;;
+        -c)
+            let i+=1
+            if [ ${i} -lt ${const_args_count} ] ;then
+                opt_options+=" ${c} ${const_args[${i}]}"
+            fi
+            ;;
+        -m)
+            let i+=1
+            shift ${i}
+            opt_arguments+=" ${c} \"$*\""
+            break
+            ;;
+        -*)
+            opt_arguments+=" ${c}"
+            ;;
+        *)
+            # treat as additional goals
+            parsing ${c}
+            ;;
+    esac
+done
+
+if [ $# -eq 0 ] ;then
+    if [ -z "${const_g}" -o ! -e "${const_g}" ] ;then
+        for d in ${PATH//:/ } ;do
+            v_dir="$d"
+            v_g="${v_dir}/g"
+            if [ -e ${v_dir} ] ;then
+                if [ ! -e ${v_g} ] ;then
+                    curl -skSL "${const_url_g}" -o "${v_g}">/dev/null 2>&1
+                    if [ $? -ne 0 ] ;then
+                        continue
+                    fi
+                    chmod +x ${v_g}>/dev/null 2>&1
+                    if [ $? -ne 0 ] ;then
+                        continue
+                    fi
+                    green "Congratulations, 'g' has been installed into ${v_dir}, enjoy yourself!"
+                    break
+                fi
+            fi
+        done
+    else
+        usage
+    fi
+else
+    which mvn>/dev/null 2>&1
+    if [ $? -eq 0 ] ;then
+        v_cmd="git"
+        v_options=$(trim ${opt_options})
+        v_command=$(trim ${opt_command})
+        v_arguments=$(trim ${opt_arguments})
+        if [ -n "${v_options}" ] ;then
+            v_cmd+=" ${v_options}"
+        fi
+        if [ -n "${v_command}" ] ;then
+            v_cmd+=" ${v_command}"
+        fi
+        if [ -n "${v_arguments}" ] ;then
+            v_cmd+=" ${v_arguments}"
+        fi
+        green "${v_cmd}"
+        ${v_cmd}
+    else
+        red "'git' has not been found in PATH, please make sure git has been installed already."
+    fi
+fi
