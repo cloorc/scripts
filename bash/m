@@ -11,10 +11,12 @@ const_source_dir=${const_m%/*}
 const_command=${const_m##*/}
 
 const_url_m="https://git.oschina.net/soiff/scripts/raw/master/bash/m"
-const_version="1.0.7"
+const_version="1.0.8"
+
+export MAVEN_OPTS="${MAVEN_OPTS} -Dmaven.test.skip=true -Dmaven.javadoc.skip=true"
 
 opt_goals=
-opt_options="-Dmaven.test.skip -Dmaven.javadoc.skip"
+opt_options=
 
 function red() {
     echo -e "\033[31m$*\033[0m"
@@ -48,11 +50,11 @@ function usage() {
 
 function release() {
       red "v${const_version}"
+    green "  1. Export options instead of append to command;"
+      red "v1.0.7"
     green "  1. Support -rf|--resume-from|-P|--active-profiles options;"
       red "v1.0.6"
     green "  1. Support -pl|--projects options;"
-      red "v1.0.5"
-    green "  1. Support aggregation for goals;"
 }
 
 function upgrade() {
