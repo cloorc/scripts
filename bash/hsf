@@ -162,16 +162,13 @@ if [ $# -eq 0 ] ;then
           if [ $? -ne 0 ] ;then
               continue
           fi
-          chmod +x ${v_hsf}>/dev/null 2>&1
-          if [ $? -ne 0 ] ;then
-              continue
-          fi
           hsf
           if [ $? -eq 0 ] ;then
             green "Congratulations, 'hsf' has been installed into ${v_dir}, enjoy yourself!"
           else
             red "Installation failed, please contact with ${const_author_mail} for help!"
             exit -1
+          fi
           break
         fi
       fi
