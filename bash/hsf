@@ -156,8 +156,8 @@ if [ $# -eq 0 ] ;then
       v_hsf="${v_dir}/hsf"
       if [ -e ${v_dir} ] ;then
         if [ ! -e ${v_hsf} ] ;then
-          jar_ip="${v_dir/${jar_ip##*/}}"
-          jar_port="${v_dir/${jar_port##*/}}"
+          jar_ip="${v_dir}/${jar_ip##*/}"
+          jar_port="${v_dir}/${jar_port##*/}"
           upgrade "${v_hsf}" && upgrade "${jar_ip}" && upgrade "${jar_port}"
           if [ $? -ne 0 ] ;then
               continue
