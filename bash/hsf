@@ -3,7 +3,7 @@
 const_hsf=${BASH_SOURCE}
 command_name=${const_hsf%.*}
 command_name=${command_name##*/}
-if [ "${const_hsf:0:8}" == "/dev/fd" ] ;then
+if [ "${const_hsf:0:8}" == "/dev/fd/" ] ;then
   const_hsf=
   command_name="hsf"
 fi
