@@ -5,7 +5,7 @@ command_name=${const_hsf%.*}
 command_name=${command_name##*/}
 if [ "${const_hsf:0:8}" == "/dev/fd" ] ;then
   const_hsf=
-  command_name=hsf
+  command_name="hsf"
 fi
 
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
