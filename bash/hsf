@@ -67,8 +67,8 @@ function usage() {
   green "  [root@app1 ~]# $command_name run --reg=$const_ip -e local_db_host=$const_ip"
     red "  # stop docker container for current maven module"
   green "  [root@app1 ~]# $command_name stop"
-    red "  # run docker container for specific war package with external public resources"
-  green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
+    red "  # run docker container for specific war package with external public resources(four backslashes if in windows)"
+  green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=/path/to/public:/opt/gamma/front/cmait/"
     red "Hi ${USER:-${USERPROFILE##*\\}}@${const_ip}, "
   green "  I am ${const_author_name}, welcome to send any feedback to <${const_author_mail}>!"
 }
