@@ -58,7 +58,7 @@ function usage() {
   green "  1. Install docker for windows : ${const_url_docker};"
   green "  2. Share working drivers with docker;"
   green "  3. \`bash <(curl -skSL ${const_url_hsf})\`;"
-  green "  4. Start a new terminal and type \`hsf\` to show usage;"
+  green "  4. Start a new bash terminal and type \`hsf\` to show usage;"
     red "Examples:"
     red "  # start edas config center"
   green "  [root@app1 ~]# $command_name config"
