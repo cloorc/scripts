@@ -116,6 +116,7 @@ function preview() {
 }
 
 function upgrade() {
+  red "Trying to install to folder: $*"
   case "$*" in
     */soiffip.jar)
       ign=$(curl -skSL "${const_url_ip}" -o "$*">/dev/null 2>&1)
