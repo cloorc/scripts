@@ -149,7 +149,7 @@ function verbose() {
 
 # installation verification
 if [ $# -eq 0 ] ;then
-  which hsf>/dev/null 2>&1
+  const_hsf=$(which hsf 2>/dev/null)
   if [ $? -ne 0 -a -z "${const_hsf}" ] ;then
     for d in ${PATH//:/ } ;do
       v_dir="$d"
@@ -174,6 +174,9 @@ if [ $# -eq 0 ] ;then
       fi
     done
     exit 0
+  else
+    jar_ip="${const_hsf%/*}/soiffip.jar"
+    jar_port="${const_hsf%/*}/soiffport.jar"
   fi
 fi
 
