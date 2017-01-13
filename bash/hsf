@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 const_hsf=${BASH_SOURCE}
-command_name=${const_hsf%.*}
-command_name=${command_name##*/}
+command_name=${const_hsf##*/}
+command_name=${command_name%\.*}
 if [ "${const_hsf:0:8}" == "/dev/fd/" ] ;then
   const_hsf=
   command_name="hsf"
 fi
 
-jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
-jar_port="${BASH_SOURCE%/*}/soiffport.jar"
+jar_ip="${const_hsf%/*}/soiffip.jar"
+jar_port="${const_hsf%/*}/soiffport.jar"
 
 const_default="default"
 const_url_hsf="https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
@@ -26,31 +26,31 @@ function usage() {
     red "Usage:"
   green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
     red "Options:"
-  green "  --verbose               #show verbose information"
-  green "  --help                #show this information"
-  green "  -h                  #same as --help"
+  green "  --verbose                           #show verbose information"
+  green "  --help                              #show this information"
+  green "  -h                                  #same as --help"
     red "  config: add additional option for edas-config-center"
-  green "  --reset                 #remove container and restart it"
-  green "  --reg=<registry-ip-address>       #custom registry ip address"
-  green "  <docker-run-options>          #additional options comes from \`docker run --help\`"
+  green "  --reset                             #remove container and restart it"
+  green "  --reg=<registry-ip-address>         #custom registry ip address"
+  green "  <docker-run-options>                #additional options comes from \`docker run --help\`"
     red "  debug|run: start container for current module"
-  green "  --reg[=<registry-ip-address>]     #edas configuration server address, default '192.168.103.108''"
+  green "  --reg[=<registry-ip-address>]       #edas configuration server address, default '192.168.103.108''"
   green "  --cfg=<spring-cloud-config-server>  #spring cloud config server address"
-  green "  --hsf-port=<hsf.server.port>      #port for hsf server"
+  green "  --hsf-port=<hsf.server.port>        #port for hsf server"
   green "  --hsf-http-port=<hsf.http.port>     #port for hsf http protocol"
-  green "  --hsf-host=<hsf.server.ip>      #ip address for hsf publisher"
-  green "  --war=<path-to-war>           #full path to war package"
+  green "  --hsf-host=<hsf.server.ip>          #ip address for hsf publisher"
+  green "  --war=<path-to-war>                 #full path to war package"
   green "  --pub=<ext-public>:<int-public>     #specify mapping for public resources"
-  green "  --web[=<http-web-port>]         #specify http web port, random by default"
-  green "  --jvm=<java-options>          #additional options to jvm"
-  green "  -D*|-X*                 #whole option will be treated as java option as \`--jvm\`"
-  green "  <docker-run-options>          #additional options comes from \`docker run --help\`"
+  green "  --web[=<http-web-port>]             #specify http web port, random by default"
+  green "  --jvm=<java-options>                #additional options to jvm"
+  green "  -D*|-X*                             #whole option will be treated as java option as \`--jvm\`"
+  green "  <docker-run-options>                #additional options comes from \`docker run --help\`"
     red "  debug: start container with java debugger enabled for current module"
-  green "  --dbg=<debug-port>          #java remote debugger port"
+  green "  --dbg=<debug-port>                  #java remote debugger port"
     red "  logs: display logging information for current container"
-  green "  <docker-logs-options>         #additional options comes from \`docker logs --help\`"
+  green "  <docker-logs-options>               #additional options comes from \`docker logs --help\`"
     red "  exec: execute command in current container in interactive mode"
-  green "  <arguments>               #additional arguments for \`docker exec\`"
+  green "  <arguments>                         #additional arguments for \`docker exec\`"
     red "Description:"
   green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
   green "  Docker container named by current folder name with prefix of \`edas-\`"
@@ -118,15 +118,15 @@ function preview() {
 function upgrade() {
   case "$*" in
     */soiffip.jar)
-      curl -skSL ${const_url_ip} -o "$*">/dev/null 2>&1
+      ign=$(curl -skSL "${const_url_ip}" -o "$*">/dev/null 2>&1)
       return $?
       ;;
     */soiffport.jar)
-      curl -skSL ${const_url_port} -o "$*">/dev/null 2>&1
+      ign=$(curl -skSL "${const_url_port}" -o "$*">/dev/null 2>&1)
       return $?
       ;;
     */hsf)
-      curl -skSL ${const_url_hsf} -o "$*" && chmod +x "$*">/dev/null 2>&1
+      ign=$(curl -skSL "${const_url_hsf}" -o "$*" && chmod +x "$*">/dev/null 2>&1)
       return $?
       ;;
   esac
