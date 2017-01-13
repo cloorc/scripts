@@ -6,6 +6,7 @@ command_name=${command_name##*/}
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
+const_ip=`java -jar ${jar_ip}`
 const_default="default"
 const_url_hsf="https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
 const_url_ip="https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar"
@@ -145,8 +146,6 @@ function verbose() {
 }
 
 check
-# init const_ip here to make sure ${jar_ip} has been downloaded already.
-const_ip=`java -jar ${jar_ip}`
 
 cmd=
 
