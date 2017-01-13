@@ -17,6 +17,8 @@ const_url_ip="https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip
 const_url_port="https://git.oschina.net/soiff/soiffport/raw/master/releases/soiffport.jar"
 const_url_docker="http://down.tesir.top/InstallDocker.msi"
 
+const_default_registry="192.168.103.101"
+
 const_author_name="Zhang Yi"
 const_author_mail="zhangh@dtdream.com"
 
@@ -62,9 +64,10 @@ function usage() {
     red "Examples:"
     red "  # start edas config center"
   green "  [root@app1 ~]# $command_name config"
-    red "  # start docker container for current maven module and the config center host is \`$const_ip\`"
-  green "  [root@app1 ~]# $command_name debug --reg=$const_ip --dbg=5005 -e local_db_host=$const_ip"
-  green "  [root@app1 ~]# $command_name run --reg=$const_ip -e local_db_host=$const_ip"
+    red "  # start docker container for current maven module and the registry is \`$const_ip\`"
+  green "  [root@app1 ~]# $command_name debug --reg=$const_ip --dbg=5005 -Dlocal.db.host=$const_ip"
+    red "  # start docker container for current maven module and the registry is \`${const_default_registry}\`"
+  green "  [root@app1 ~]# $command_name run --reg -Dlocal.db.host=$const_ip"
     red "  # stop docker container for current maven module"
   green "  [root@app1 ~]# $command_name stop"
     red "  # run docker container for specific war package with external public resources(four backslashes if in windows)"
@@ -324,7 +327,7 @@ case ${cmd} in
     docker exec -it ${container} ${docker_opts:-bash}
     ;;
   debug|run)
-    docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
+    docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-${const_default_registry}}"
     stop ${container}
 
     if [ -z "${opt_war}" ] ;then
