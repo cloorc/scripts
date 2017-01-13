@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-command_name=${0%.*}
+const_hsf=${BASH_SOURCE}
+command_name=${const_hsf%.*}
 command_name=${command_name##*/}
+if [ "${const_hsf:0:8}" == "/dev/fd" ] ;then
+  const_hsf=
+  command_name=hsf
+fi
 
 jar_ip="${BASH_SOURCE%/*}/soiffip.jar"
 jar_port="${BASH_SOURCE%/*}/soiffport.jar"
 
-const_ip=`java -jar ${jar_ip}`
 const_default="default"
 const_url_hsf="https://git.oschina.net/soiff/scripts/raw/master/bash/hsf"
 const_url_ip="https://git.oschina.net/soiff/soiff-ip/raw/master/releases/soiffip.jar"
@@ -19,133 +23,167 @@ const_author_mail="zhangh@dtdream.com"
 container=edas-${PWD##*/}
 
 function usage() {
-      red "Usage:"
-    green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
-      red "Options:"
-    green "  --verbose                             #show verbose information"
-    green "  --help                                #show this information"
-    green "  -h                                    #same as --help"
-      red "  config: add additional option for edas-config-center"
-    green "  --reset                               #remove container and restart it"
-    green "  --reg=<registry-ip-address>           #custom registry ip address"
-    green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
-      red "  debug|run: start container for current module"
-    green "  --reg[=<registry-ip-address>]         #edas configuration server address, default '192.168.103.108''"
-    green "  --cfg=<spring-cloud-config-server>    #spring cloud config server address"
-    green "  --hsf-port=<hsf.server.port>          #port for hsf server"
-    green "  --hsf-http-port=<hsf.http.port>       #port for hsf http protocol"
-    green "  --hsf-host=<hsf.server.ip>            #ip address for hsf publisher"
-    green "  --war=<path-to-war>                   #full path to war package"
-    green "  --pub=<ext-public>:<int-public>       #specify mapping for public resources"
-    green "  --web[=<http-web-port>]               #specify http web port, random by default"
-    green "  --jvm=<java-options>                  #additional options to jvm"
-    green "  -D*|-X*                               #whole option will be treated as java option as \`--jvm\`"
-    green "  <docker-run-options>                  #additional options comes from \`docker run --help\`"
-      red "  debug: start container with java debugger enabled for current module"
-    green "  --dbg=<debug-port>                    #java remote debugger port"
-      red "  logs: display logging information for current container"
-    green "  <docker-logs-options>                 #additional options comes from \`docker logs --help\`"
-      red "  exec: execute command in current container in interactive mode"
-    green "  <arguments>                           #additional arguments for \`docker exec\`"
-      red "Description:"
-    green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
-    green "  Docker container named by current folder name with prefix of \`edas-\`"
-      red "Installation:"
-    green "  1. Install docker for windows : ${const_url_docker}"
-    green "  2. Get the script from : ${const_url_hsf}"
-    green "  3. Put the script \`hsf\` into \`PATH\` and \`chmod +x hsf\`"
-    green "  4. Start a new terminal and type \`hsf\` to show usage"
-      red "Examples:"
-      red "  # start edas config center"
-    green "  [root@app1 ~]# $command_name config"
-      red "  # start docker container for current maven module and the config center host is \`$const_ip\`"
-    green "  [root@app1 ~]# $command_name debug --reg=$const_ip --dbg=5005 -e local_db_host=$const_ip"
-    green "  [root@app1 ~]# $command_name run --reg=$const_ip -e local_db_host=$const_ip"
-      red "  # stop docker container for current maven module"
-    green "  [root@app1 ~]# $command_name stop"
-      red "  # run docker container for specific war package with external public resources"
-    green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
-      red "Hi ${USER:-${USERPROFILE##*\\}}@${const_ip}, "
-    green "  I am ${const_author_name}, welcome to send any feedback to <${const_author_mail}>!"
+    red "Usage:"
+  green "  $command_name {config|debug|run|stop|logs|ps|exec|upgrade|help}"
+    red "Options:"
+  green "  --verbose               #show verbose information"
+  green "  --help                #show this information"
+  green "  -h                  #same as --help"
+    red "  config: add additional option for edas-config-center"
+  green "  --reset                 #remove container and restart it"
+  green "  --reg=<registry-ip-address>       #custom registry ip address"
+  green "  <docker-run-options>          #additional options comes from \`docker run --help\`"
+    red "  debug|run: start container for current module"
+  green "  --reg[=<registry-ip-address>]     #edas configuration server address, default '192.168.103.108''"
+  green "  --cfg=<spring-cloud-config-server>  #spring cloud config server address"
+  green "  --hsf-port=<hsf.server.port>      #port for hsf server"
+  green "  --hsf-http-port=<hsf.http.port>     #port for hsf http protocol"
+  green "  --hsf-host=<hsf.server.ip>      #ip address for hsf publisher"
+  green "  --war=<path-to-war>           #full path to war package"
+  green "  --pub=<ext-public>:<int-public>     #specify mapping for public resources"
+  green "  --web[=<http-web-port>]         #specify http web port, random by default"
+  green "  --jvm=<java-options>          #additional options to jvm"
+  green "  -D*|-X*                 #whole option will be treated as java option as \`--jvm\`"
+  green "  <docker-run-options>          #additional options comes from \`docker run --help\`"
+    red "  debug: start container with java debugger enabled for current module"
+  green "  --dbg=<debug-port>          #java remote debugger port"
+    red "  logs: display logging information for current container"
+  green "  <docker-logs-options>         #additional options comes from \`docker logs --help\`"
+    red "  exec: execute command in current container in interactive mode"
+  green "  <arguments>               #additional arguments for \`docker exec\`"
+    red "Description:"
+  green "  To deploy EDAS application into docker container on localhost, which means docker is pre-required."
+  green "  Docker container named by current folder name with prefix of \`edas-\`"
+    red "Installation:"
+  green "  1. Install docker for windows : ${const_url_docker}"
+  green "  2. Get the script from : ${const_url_hsf}"
+  green "  3. \`bash <(curl -skSL ${const_url_hsf}\`"
+  green "  4. Start a new terminal and type \`hsf\` to show usage"
+    red "Examples:"
+    red "  # start edas config center"
+  green "  [root@app1 ~]# $command_name config"
+    red "  # start docker container for current maven module and the config center host is \`$const_ip\`"
+  green "  [root@app1 ~]# $command_name debug --reg=$const_ip --dbg=5005 -e local_db_host=$const_ip"
+  green "  [root@app1 ~]# $command_name run --reg=$const_ip -e local_db_host=$const_ip"
+    red "  # stop docker container for current maven module"
+  green "  [root@app1 ~]# $command_name stop"
+    red "  # run docker container for specific war package with external public resources"
+  green "  [root@app1 ~]# $command_name run --war=/path/to/package.war --pub=D:\\\\path\\\\to\\\\public:/opt/gamma/front/cmait/"
+    red "Hi ${USER:-${USERPROFILE##*\\}}@${const_ip}, "
+  green "  I am ${const_author_name}, welcome to send any feedback to <${const_author_mail}>!"
 }
 
 function red() {
-    echo -e "\033[31m$*\033[0m"
+  echo -e "\033[31m$*\033[0m"
 }
 
 function green() {
-    echo -e "\033[32m$*\033[0m"
+  echo -e "\033[32m$*\033[0m"
 }
 
 function fatal() {
-    red $*
-    usage
+  red $*
+  usage
 }
 
 function exist() {
-    count=`docker ps -f name=$1|wc -l`;
-    if [ ${count} -eq 2 ] ;then
-        return 0
-    fi
-    return -1
+  count=`docker ps -f name=$1|wc -l`;
+  if [ ${count} -eq 2 ] ;then
+    return 0
+  fi
+  return -1
 }
 
 function stop() {
-    green "Trying to stop container $1 ...";
-    exist $1
-    [ $? -eq 0 ] && docker stop $1;
-    green "Trying to remove container $1 ..."
-    count=`docker ps -af name=$1|wc -l`;
-    [ ${count} -eq 2 ] && docker rm $1;
-    return 0
+  green "Trying to stop container $1 ...";
+  exist $1
+  [ $? -eq 0 ] && docker stop $1;
+  green "Trying to remove container $1 ..."
+  count=`docker ps -af name=$1|wc -l`;
+  [ ${count} -eq 2 ] && docker rm $1;
+  return 0
 }
 
 function preview() {
-    docker_opts=${docker_opts# }
-    java_opts=${java_opts# }
-    # 79 characters
-    green "###############################################################################"
-      red "        command : ${cmd}"
-      red " docker options : ${docker_opts}"
-      red "   java options : ${java_opts}"
-    green "###############################################################################"
+  docker_opts=${docker_opts# }
+  java_opts=${java_opts# }
+  # 79 characters
+  green "###############################################################################"
+    red "    command : ${cmd}"
+    red " docker options : ${docker_opts}"
+    red "   java options : ${java_opts}"
+  green "###############################################################################"
 }
 
 function upgrade() {
-    for e in $* ;do
-        case ${e} in
-            ${jar_ip})
-                curl -skSL ${const_url_ip} -o ${e}
-                return $?
-                ;;
-            ${jar_port})
-                curl -skSL ${const_url_port} -o ${e}
-                return $?
-                ;;
-            $BASH_SOURCE)
-                curl -skSL ${const_url_hsf} -o ${e} && chmod +x ${e}
-                return $?
-                ;;
-        esac
-    done
+  case "$*" in
+    */soiffip.jar)
+      curl -skSL ${const_url_ip} -o "$*"
+      return $?
+      ;;
+    */soiffport.jar)
+      curl -skSL ${const_url_port} -o "$*"
+      return $?
+      ;;
+    */hsf)
+      curl -skSL ${const_url_hsf} -o "$*" && chmod +x "$*"
+      return $?
+      ;;
+  esac
 }
 
 function check() {
-    components="$jar_ip $jar_port"
-    for c in ${components} ;do
-        if [ ! -e "${c}" ] ;then
-            upgrade "$c"
-        fi
-    done
+  components="$jar_ip $jar_port"
+  for c in ${components} ;do
+    if [ ! -e "${c}" ] ;then
+      upgrade "$c"
+    fi
+  done
 }
 
 function verbose() {
-    if [ "$opt_verbose" == "true" ] ;then
-        green "$*"
-    fi
+  if [ "$opt_verbose" == "true" ] ;then
+    green "$*"
+  fi
 }
 
+# installation verification
+if [ $# -eq 0 ] ;then
+  which hsf>/dev/null 2>&1
+  if [ $? -ne 0 -a -z "${const_hsf}" ] ;then
+    for d in ${PATH//:/ } ;do
+      v_dir="$d"
+      v_hsf="${v_dir}/hsf"
+      if [ -e ${v_dir} ] ;then
+        if [ ! -e ${v_hsf} ] ;then
+          jar_ip="${v_dir/${jar_ip##*/}}"
+          jar_port="${v_dir/${jar_port##*/}}"
+          upgrade "${v_hsf}" && upgrade "${jar_ip}" && upgrade "${jar_port}"
+          if [ $? -ne 0 ] ;then
+              continue
+          fi
+          chmod +x ${v_hsf}>/dev/null 2>&1
+          if [ $? -ne 0 ] ;then
+              continue
+          fi
+          hsf
+          if [ $? -eq 0 ] ;then
+            green "Congratulations, 'hsf' has been installed into ${v_dir}, enjoy yourself!"
+          else
+            red "Installation failed, please contact with ${const_author_mail} for help!"
+            exit -1
+          break
+        fi
+      fi
+    done
+    exit 0
+  fi
+fi
+
 check
+
+# Check only if jar exist already.
+const_ip=`java -jar ${jar_ip}`
 
 cmd=
 
@@ -154,216 +192,216 @@ opt_config=
 docker_opts=""
 java_opts=""
 for c in $* ;do
-    case ${c} in
-        --reset)
-            opt_reset=1
-            ;;
-        --reg|--reg=*)
-            if [ "${c}" == "--reg" ] ;then
-                opt_registry="192.168.103.108"
-            else
-                opt_registry=${c#*=}
-            fi
-            ;;
-        --web|--web=*)
-            if [ "${c}" == "--web" ] ;then
-                opt_web_port="${const_default}"
-            else
-                opt_web_port=${c#*=}
-            fi
-            ;;
-        --cfg=*)
-            opt_config=${c#*=}
-            ;;
-        --hsf-port=*)
-            v=${c#*=}
-            opt_hsf_port=${v}
-            ;;
-        --hsf-http-port=*)
-            v=${c#*=}
-            docker_opts+=" -p $v:$v"
-            java_opts+=" -Dhsf.http.port=$v"
-            ;;
-        --hsf-host=*)
-            v=${c#*=}
-            opt_hsf_host=${v}
-            ;;
-        --war=*)
-            v=${c#*=}
-            opt_war=${v}
-            ;;
-        --pub=*)
-            v=${c#*=}
-            docker_opts+=" -v $v"
-            ;;
-        -D*|-X*)
-            java_opts+=" ${c}"
-            ;;
-        --jvm=*)
-            java_opts+=" ${c#*=}"
-            ;;
-        --verbose)
-            opt_verbose=true
-            ;;
-        setup|config|logs|stop|ps|exec|run|test)
-            cmd=${c}
-            ;;
-        debug)
-            cmd=${c}
-            java_opts+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y"
-            ;;
-        --dbg=*)
-            v=${c#*=}
-            opt_debug_port=${v}
-            ;;
-        upgrade)
-            upgrade "$jar_ip"
-            upgrade "$jar_port"
-            upgrade "${BASH_SOURCE}"
-            exit $?
-            ;;
-        -h|--help|help)
-            usage
-            exit 0
-            ;;
-        *)
-            docker_opts+=" ${c// /\\ }"
-            ;;
-    esac
+  case ${c} in
+    --reset)
+      opt_reset=1
+      ;;
+    --reg|--reg=*)
+      if [ "${c}" == "--reg" ] ;then
+        opt_registry="192.168.103.108"
+      else
+        opt_registry=${c#*=}
+      fi
+      ;;
+    --web|--web=*)
+      if [ "${c}" == "--web" ] ;then
+        opt_web_port="${const_default}"
+      else
+        opt_web_port=${c#*=}
+      fi
+      ;;
+    --cfg=*)
+      opt_config=${c#*=}
+      ;;
+    --hsf-port=*)
+      v=${c#*=}
+      opt_hsf_port=${v}
+      ;;
+    --hsf-http-port=*)
+      v=${c#*=}
+      docker_opts+=" -p $v:$v"
+      java_opts+=" -Dhsf.http.port=$v"
+      ;;
+    --hsf-host=*)
+      v=${c#*=}
+      opt_hsf_host=${v}
+      ;;
+    --war=*)
+      v=${c#*=}
+      opt_war=${v}
+      ;;
+    --pub=*)
+      v=${c#*=}
+      docker_opts+=" -v $v"
+      ;;
+    -D*|-X*)
+      java_opts+=" ${c}"
+      ;;
+    --jvm=*)
+      java_opts+=" ${c#*=}"
+      ;;
+    --verbose)
+      opt_verbose=true
+      ;;
+    setup|config|logs|stop|ps|exec|run|test)
+      cmd=${c}
+      ;;
+    debug)
+      cmd=${c}
+      java_opts+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=0.0.0.0:5005,suspend=n,server=y"
+      ;;
+    --dbg=*)
+      v=${c#*=}
+      opt_debug_port=${v}
+      ;;
+    upgrade)
+      upgrade "$jar_ip"
+      upgrade "$jar_port"
+      upgrade "${BASH_SOURCE}"
+      exit $?
+      ;;
+    -h|--help|help)
+      usage
+      exit 0
+      ;;
+    *)
+      docker_opts+=" ${c// /\\ }"
+      ;;
+  esac
 done
 
 
 if [ -z "$opt_hsf_host" ] ;then
-    opt_hsf_host=${const_ip}
+  opt_hsf_host=${const_ip}
 fi
 if [ -z "$opt_registry" ] ;then
-    opt_registry=${const_ip}
+  opt_registry=${const_ip}
 fi
 if [ -n "$opt_hsf_host" ] ;then
-    java_opts+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
+  java_opts+=" -DHsfBindHost=0.0.0.0 -Dhsf.server.ip=$opt_hsf_host"
 fi
 
 function initial() {
-    if [ -z "$opt_hsf_port" ] ;then
-        opt_hsf_port=`java -jar ${jar_port} ${container}`
-    fi
-    if [ -z "$opt_debug_port" ] ;then
-        opt_debug_port=`java -jar ${jar_port} debug-${container}`
-    fi
-    if [ -n "$opt_hsf_port" ] ;then
-        docker_opts+=" -p $opt_hsf_port:$opt_hsf_port"
-        java_opts+=" -Dhsf.server.port=$opt_hsf_port"
-    fi
+  if [ -z "$opt_hsf_port" ] ;then
+    opt_hsf_port=`java -jar ${jar_port} ${container}`
+  fi
+  if [ -z "$opt_debug_port" ] ;then
+    opt_debug_port=`java -jar ${jar_port} debug-${container}`
+  fi
+  if [ -n "$opt_hsf_port" ] ;then
+    docker_opts+=" -p $opt_hsf_port:$opt_hsf_port"
+    java_opts+=" -Dhsf.server.port=$opt_hsf_port"
+  fi
 }
 
 case ${cmd} in
-    stop)
-        preview
-        stop ${container}
-        ;;
-    logs)
-        preview
-        docker logs ${docker_opts} ${container}
-        ;;
-    config)
-        container=edas-config-center
-        docker_opts+=" -e SERVER_IP=${opt_registry} -p 8080:8080 -p 9600:9600"
-        preview
-        exist ${container}
-        if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
-            docker ps -f name=${container}
+  stop)
+    preview
+    stop ${container}
+    ;;
+  logs)
+    preview
+    docker logs ${docker_opts} ${container}
+    ;;
+  config)
+    container=edas-config-center
+    docker_opts+=" -e SERVER_IP=${opt_registry} -p 8080:8080 -p 9600:9600"
+    preview
+    exist ${container}
+    if [ $? -eq 0 -a ${opt_reset:-0} -ne 1 ]; then
+      docker ps -f name=${container}
+    else
+      stop ${container}
+      docker run --name=${container} -d ${docker_opts} index.tenxcloud.com/revolc/edas-config-center:latest
+    fi
+    ;;
+  ps)
+    preview
+    docker ps -af name=${container}
+    ;;
+  exec)
+    preview
+    docker exec -it ${container} ${docker_opts:-bash}
+    ;;
+  debug|run)
+    docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
+    stop ${container}
+
+    if [ -z "${opt_war}" ] ;then
+      finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s\+.*$"`
+      if [ $? -ne 0 ] ;then
+        fatal "Cannot retrieve the final name for this artifact."
+        exit -1
+      fi
+    fi
+
+    const_war="${opt_war:-target/$finalName.war}"
+    const_target_war="target/deploy/ROOT.war"
+    verbose "Package '${const_war}' will be mounted ..."
+
+    if [ ! -e "$const_war" ] ;then
+      fatal "Not a valid hsf application : ${const_war}."
+      exit -1
+    fi
+
+    if [ ! -e "target/deploy" ] ;then
+      mkdir -p target/deploy
+    fi
+
+    if [ ! -e "${const_target_war}" ] ;then
+      verbose "Copying file '$const_war' to '${const_target_war}' ..."
+      cp "$const_war" "${const_target_war}"
+    fi
+
+    #/d/source/directory
+    local_wd=$PWD/target/deploy;
+    if [ -n "${USERPROFILE}" ] ;then
+      #bash from windows
+      local_wd=${local_wd//\//\\};
+      local_wd=${local_wd#\\};
+      local_wd=${local_wd/\\/:\\};
+    fi
+
+    initial
+
+    if [ "${opt_web_port}" == "${const_default}" ] ;then
+      opt_web_port=`java -jar ${jar_port} ${container}-httpport`
+    fi
+    if [ -n "${opt_web_port}" ] ;then
+      docker_opts+=" -p $opt_web_port:8080"
+      java_opts+=" -Dserver.address=0.0.0.0"
+    fi
+
+    green "Mounting ${local_wd//\\/\\\\} ...";
+    image=
+    case ${cmd} in
+      debug)
+        image=index.tenxcloud.com/revolc/edas:latest
+        if [ -n "$opt_debug_port" ] ;then
+          docker_opts+=" -p $opt_debug_port:5005"
         else
-            stop ${container}
-            docker run --name=${container} -d ${docker_opts} index.tenxcloud.com/revolc/edas-config-center:latest
+          docker_opts+=" -p 5005:5005"
         fi
         ;;
-    ps)
-        preview
-        docker ps -af name=${container}
+      run)
+        image=index.tenxcloud.com/revolc/edas-production:latest
         ;;
-    exec)
-        preview
-        docker exec -it ${container} ${docker_opts:-bash}
+      *)
+        fatal "Unexpected command $cmd"
+        exit -1
         ;;
-    debug|run)
-        docker_opts+=" --add-host=jmenv.tbsite.net:${opt_registry} --add-host=config.tesir.top:${opt_config:-192.168.103.101}"
-        stop ${container}
+    esac
 
-        if [ -z "${opt_war}" ] ;then
-            finalName=`mvn help:evaluate -Dexpression=project.build.finalName 2>/dev/null|grep -v "^\[INFO\].*$"|grep -v "^.*\s\+.*$"`
-            if [ $? -ne 0 ] ;then
-                fatal "Cannot retrieve the final name for this artifact."
-                exit -1
-            fi
-        fi
-
-        const_war="${opt_war:-target/$finalName.war}"
-        const_target_war="target/deploy/ROOT.war"
-        verbose "Package '${const_war}' will be mounted ..."
-
-        if [ ! -e "$const_war" ] ;then
-            fatal "Not a valid hsf application : ${const_war}."
-            exit -1
-        fi
-
-        if [ ! -e "target/deploy" ] ;then
-            mkdir -p target/deploy
-        fi
-
-        if [ ! -e "${const_target_war}" ] ;then
-            verbose "Copying file '$const_war' to '${const_target_war}' ..."
-            cp "$const_war" "${const_target_war}"
-        fi
-
-        #/d/source/directory
-        local_wd=$PWD/target/deploy;
-        if [ -n "${USERPROFILE}" ] ;then
-            #bash from windows
-            local_wd=${local_wd//\//\\};
-            local_wd=${local_wd#\\};
-            local_wd=${local_wd/\\/:\\};
-        fi
-
-        initial
-
-        if [ "${opt_web_port}" == "${const_default}" ] ;then
-            opt_web_port=`java -jar ${jar_port} ${container}-httpport`
-        fi
-        if [ -n "${opt_web_port}" ] ;then
-            docker_opts+=" -p $opt_web_port:8080"
-            java_opts+=" -Dserver.address=0.0.0.0"
-        fi
-
-        green "Mounting ${local_wd//\\/\\\\} ...";
-        image=
-        case ${cmd} in
-            debug)
-                image=index.tenxcloud.com/revolc/edas:latest
-                if [ -n "$opt_debug_port" ] ;then
-                    docker_opts+=" -p $opt_debug_port:5005"
-                else
-                    docker_opts+=" -p 5005:5005"
-                fi
-                ;;
-            run)
-                image=index.tenxcloud.com/revolc/edas-production:latest
-                ;;
-            *)
-                fatal "Unexpected command $cmd"
-                exit -1
-                ;;
-        esac
-        
-        preview
-        if [ -n "$java_opts" ] ;then
-            docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
-                ${docker_opts:+${docker_opts}} -e JAVA_OPTS="${java_opts}" ${image}
-        else
-            docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
-                ${docker_opts:+${docker_opts}} ${image}
-        fi
-        ;;
-    *)
-        usage
-        ;;
+    preview
+    if [ -n "$java_opts" ] ;then
+      docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
+        ${docker_opts:+${docker_opts}} -e JAVA_OPTS="${java_opts}" ${image}
+    else
+      docker run --name=${container} -d -v ${local_wd}:/opt/taobao-tomcat-7.0.59/deploy \
+        ${docker_opts:+${docker_opts}} ${image}
+    fi
+    ;;
+  *)
+    usage
+    ;;
 esac
