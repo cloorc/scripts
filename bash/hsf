@@ -116,18 +116,17 @@ function preview() {
 }
 
 function upgrade() {
-  red "Trying to install to folder: $*"
   case "$*" in
     */soiffip.jar)
-      ign=$(curl -skSL "${const_url_ip}" -o "$*">/dev/null 2>&1)
+      curl -skSL "${const_url_ip}" -o "$*">/dev/null 2>&1
       return $?
       ;;
     */soiffport.jar)
-      ign=$(curl -skSL "${const_url_port}" -o "$*">/dev/null 2>&1)
+      curl -skSL "${const_url_port}" -o "$*">/dev/null 2>&1
       return $?
       ;;
     */hsf)
-      ign=$(curl -skSL "${const_url_hsf}" -o "$*" && chmod +x "$*">/dev/null 2>&1)
+      curl -skSL "${const_url_hsf}" -o "$*">/dev/null 2>&1 && chmod +x "$*"
       return $?
       ;;
   esac
