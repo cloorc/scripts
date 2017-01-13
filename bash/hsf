@@ -118,15 +118,15 @@ function preview() {
 function upgrade() {
   case "$*" in
     */soiffip.jar)
-      curl -skSL ${const_url_ip} -o "$*"
+      curl -skSL ${const_url_ip} -o "$*">/dev/null 2>&1
       return $?
       ;;
     */soiffport.jar)
-      curl -skSL ${const_url_port} -o "$*"
+      curl -skSL ${const_url_port} -o "$*">/dev/null 2>&1
       return $?
       ;;
     */hsf)
-      curl -skSL ${const_url_hsf} -o "$*" && chmod +x "$*"
+      curl -skSL ${const_url_hsf} -o "$*" && chmod +x "$*">/dev/null 2>&1
       return $?
       ;;
   esac
